@@ -196,9 +196,10 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
 .loader{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px;}
 .loader-logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:2.5rem;letter-spacing:0.1em;text-transform:uppercase;color:#fff;}
 .loader-logo span{color:var(--gold);}
-.role-check-item{background:var(--sf2);border:1.5px solid var(--bd);border-radius:10px;padding:10px 12px;transition:all 0.15s;}
-.role-check-item.checked{background:rgba(64,65,104,0.06);border-color:var(--navy);}
-.role-check-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--navy);cursor:pointer;}
+.role-check-item{background:var(--sf2);border:1.5px solid var(--bd);border-radius:10px;padding:10px 12px;transition:all 0.15s;cursor:pointer;}
+.role-check-item.checked{background:rgba(64,65,104,0.08);border-color:var(--navy);box-shadow:0 0 0 2px rgba(64,65,104,0.15);}
+.role-check-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--navy);cursor:pointer;flex-shrink:0;}
+.role-check-item label{cursor:pointer;width:100%;}
 /* CLUB SPACE */
 .dojo-filter{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
 .dojo-btn{padding:5px 12px;border-radius:20px;border:1.5px solid var(--bd);background:var(--sf);color:var(--mu);font-size:0.68rem;font-weight:600;cursor:pointer;transition:all 0.15s;}
@@ -915,12 +916,12 @@ async function tryAutoLogin(){
 
 async function doLogout(){
   await sb.auth.signOut();
-  // Effacer les cookies de reconnexion automatique
+  try{localStorage.removeItem('cmj28_e');localStorage.removeItem('cmj28_p');}catch(e){}
   document.cookie='cmj28_e=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;';
   document.cookie='cmj28_p=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;';
-  try{localStorage.removeItem('cmj28_e');localStorage.removeItem('cmj28_p');}catch(e){}
   CU=null;CP=null;
-  cm('m-edit-profile');
+  // Fermer tous les modaux ouverts
+  document.querySelectorAll('.mo.open').forEach(m=>m.classList.remove('open'));
   showAuthPage();
 }
 
@@ -1625,6 +1626,10 @@ function showProfSection(sec){
     <div id="prof-cal-list"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;
     calProfType='competition';calSelectedCats=[];loadProfCalList();
   }
+  else if(sec==='licencies'){loadLicencies();return;}
+  else if(sec==='saison'){
+    pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📋 Planification Saison</div><button class="bS" onclick="showProfSection('main')">← Retour</button></div>`;
+  }
   window.scrollTo(0,0);
 }
 
@@ -1812,7 +1817,8 @@ async function loadCalendrier(context){
   const elId=context==='section'?'section-cal-view':'club-cal-view';
   const el=document.getElementById(elId);if(!el)return;
   let query=sb.from('competitions_club').select('*').order('created_at',{ascending:true});
-  if(context==='section')query=query.in('categorie',['Minimes','Cadets(tes)','Juniors','Seniors','Tous']);
+  if(context==='section')query=query.eq('source','section');
+  else query=query.eq('source','club');
   const{data:comps}=await query;
   let filtered=comps||[];
   const userCat=CP.cat||null;
@@ -2009,7 +2015,36 @@ function showProfSectionSection(sec){
   else if(sec==='licencies'){loadLicencies();}
   else if(sec==='saison'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📋 Planification Saison</div><button class="bS" onclick="renderProfSectionPage()">← Retour</button></div><div class="card"><div class="ST" style="font-size:0.78rem">Ajouter une période</div><div class="tc" style="margin-bottom:8px"><div class="fg" style="margin:0"><label>Du</label><input type="date" id="saison-debut"></div><div class="fg" style="margin:0"><label>Au</label><input type="date" id="saison-fin"></div></div><div class="fg"><label>Type</label><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px"><button type="button" class="ftab active" id="saison-type-technique" onclick="setSaisonType('technique',this)">🥋 Technique</button><button type="button" class="ftab" id="saison-type-physique" onclick="setSaisonType('physique',this)">💪 Physique</button><button type="button" class="ftab" id="saison-type-competition" onclick="setSaisonType('competition',this)">🏆 Compétition</button><button type="button" class="ftab" id="saison-type-autre" onclick="setSaisonType('autre',this)">📝 Autre</button></div></div><div class="fg"><label>Contenu</label><textarea id="saison-contenu" style="min-height:80px" placeholder="Ex: Seoi-nage + Uchi-mata..."></textarea></div><button class="bP" onclick="saveSaisonPeriode()">💾 Enregistrer</button></div><div class="ST">Planning saison</div><div id="saison-list"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;saisonType='technique';loadSaisonPlanning();}
   else if(sec==='annonces'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📢 Annonces Section</div><button class="bS" onclick="renderProfSectionPage()">← Retour</button></div><div class="card"><div class="fg"><label>Titre</label><input type="text" id="sann-titre"></div><div class="fg"><label>Message</label><textarea id="sann-texte" style="min-height:80px"></textarea></div><button class="bP" onclick="sendSectionAnnonce()">📨 Publier</button></div><div class="ST">Mes annonces</div><div id="sann-list"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionAnnoncesList();}
-  else if(sec==='calendrier'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📅 Calendrier compétitions, stages & événements</div><button class="bS" onclick="renderProfSectionPage()">← Retour</button></div><div id="section-cal-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadCalendrier('section');}
+  else if(sec==='calendrier'){
+    pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📅 Calendrier compétitions, stages & événements — Section</div><button class="bS" onclick="renderProfSectionPage()">← Retour</button></div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="ST" style="font-size:0.78rem">Ajouter un événement Section</div>
+      <div class="fg"><label>Type</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+          <button type="button" class="ftab active" id="cal-type-competition" onclick="setCalType('competition',this)">🏆 Compétition</button>
+          <button type="button" class="ftab" id="cal-type-stage" onclick="setCalType('stage',this)">🏕️ Stage</button>
+          <button type="button" class="ftab" id="cal-type-evenement" onclick="setCalType('evenement',this)">🎉 Événement</button>
+        </div>
+      </div>
+      <div class="fg"><label>Catégories</label>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px" id="cal-cats-sel">
+          <button type="button" class="chb" onclick="toggleCalCat(this,'Minimes')">Minimes</button>
+          <button type="button" class="chb" onclick="toggleCalCat(this,'Cadets(tes)')">Cadets(tes)</button>
+          <button type="button" class="chb" onclick="toggleCalCat(this,'Juniors')">Juniors</button>
+          <button type="button" class="chb" onclick="toggleCalCat(this,'Seniors')">Seniors</button>
+          <button type="button" class="chb" onclick="toggleCalCatAll()">Tous</button>
+        </div>
+      </div>
+      <div class="fg"><label>Nom</label><input type="text" id="cal-nom-prof" placeholder="Ex: Tournoi Section, Stage judo..."></div>
+      <div class="fg"><label>Date(s)</label><input type="text" id="cal-date-prof" placeholder="Ex: 15 mars 2027 ou 15-17 mars 2027"></div>
+      <div class="fg"><label>Lieu</label><input type="text" id="cal-lieu-prof" placeholder="Ville"></div>
+      <div class="fg"><label>Informations</label><textarea id="cal-info-prof" style="min-height:60px" placeholder="Adresse, horaires..."></textarea></div>
+      <button class="bP" onclick="saveSectionCalEvent()">💾 Ajouter</button>
+    </div>
+    <div class="ST">Calendrier Section</div>
+    <div id="section-cal-edit-list"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;
+    calProfType='competition';calSelectedCats=[];loadSectionCalEditList();
+  }
   window.scrollTo(0,0);
 }
 async function loadSectionCoursList(){
@@ -2086,7 +2121,7 @@ async function saveProfCalEvent(){
   const lieu=document.getElementById('cal-lieu-prof')?.value||'';
   const info=document.getElementById('cal-info-prof')?.value||'';
   for(const cat of cats){
-    await sb.from('competitions_club').insert({id:crypto.randomUUID(),nom,date_texte:date,lieu,info,categorie:cat,type_event:calProfType,created_by:CU.id,created_at:new Date().toISOString()});
+    await sb.from('competitions_club').insert({id:crypto.randomUUID(),nom,date_texte:date,lieu,info,categorie:cat,type_event:calProfType,source:'club',created_by:CU.id,created_at:new Date().toISOString()});
   }
   if(document.getElementById('cal-nom-prof'))document.getElementById('cal-nom-prof').value='';
   if(document.getElementById('cal-date-prof'))document.getElementById('cal-date-prof').value='';
@@ -2143,7 +2178,45 @@ async function toggleInscriptionCours(coursId){
   loadClubPlanning(currentDojo||'tous');
 }
 
-// renderClubPlanning avec boutons inscription
+async function saveSectionCalEvent(){
+  const nom=document.getElementById('cal-nom-prof')?.value.trim();if(!nom){toast('Donne un nom !',1);return;}
+  const cats=calSelectedCats.length?calSelectedCats:['Minimes','Cadets(tes)'];
+  const date=document.getElementById('cal-date-prof')?.value.trim()||'';
+  const lieu=document.getElementById('cal-lieu-prof')?.value||'';
+  const info=document.getElementById('cal-info-prof')?.value||'';
+  for(const cat of cats){
+    await sb.from('competitions_club').insert({id:crypto.randomUUID(),nom,date_texte:date,lieu,info,categorie:cat,type_event:calProfType,source:'section',created_by:CU.id,created_at:new Date().toISOString()});
+  }
+  if(document.getElementById('cal-nom-prof'))document.getElementById('cal-nom-prof').value='';
+  if(document.getElementById('cal-date-prof'))document.getElementById('cal-date-prof').value='';
+  if(document.getElementById('cal-lieu-prof'))document.getElementById('cal-lieu-prof').value='';
+  if(document.getElementById('cal-info-prof'))document.getElementById('cal-info-prof').value='';
+  calSelectedCats=[];document.querySelectorAll('#cal-cats-sel .chb').forEach(b=>b.classList.remove('sel'));
+  showSync();toast('Événement Section ajouté !');loadSectionCalEditList();
+}
+
+async function loadSectionCalEditList(){
+  const{data}=await sb.from('competitions_club').select('*').eq('source','section').order('created_at',{ascending:true});
+  const el=document.getElementById('section-cal-edit-list');if(!el)return;
+  if(!data||!data.length){el.innerHTML='<div style="color:var(--mu);font-size:0.8rem;text-align:center;padding:12px">Aucun événement.</div>';return;}
+  const TYPE_EMOJI={competition:'🏆',stage:'🏕️',evenement:'🎉'};
+  el.innerHTML=data.map(c=>{
+    const col=CAT_COLORS[c.categorie]||'var(--navy)';
+    const emoji=TYPE_EMOJI[c.type_event]||'📅';
+    return `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:7px;border-left:4px solid ${col}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="flex:1"><div style="font-weight:700;font-size:0.88rem;color:var(--navy)">${emoji} ${c.nom}</div>
+        <div style="font-size:0.7rem;color:var(--mu);margin-top:2px">📅 ${c.date_texte||'Date TBD'}${c.lieu?' • 📍'+c.lieu:''}</div>
+        ${c.info?`<div style="font-size:0.7rem;color:var(--tx);margin-top:3px;background:var(--sf2);border-radius:5px;padding:4px 6px">ℹ️ ${c.info}</div>`:''}
+        <div style="margin-top:4px"><span style="font-size:0.6rem;padding:2px 8px;border-radius:8px;font-weight:700;background:${col}22;color:${col}">${c.categorie}</span></div></div>
+        <button class="bR" style="margin-left:8px" onclick="deleteProfCalEvent('${c.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Update loadCalendrier for section to only show source=section events
+
 function renderClubPlanning(cours,dojoFilter){
   const el=document.getElementById('planning-view');if(!el)return;
   const filtered=dojoFilter==='tous'?cours:cours.filter(c=>c.dojo===dojoFilter);
@@ -2442,26 +2515,35 @@ async function renderSectionWeek(){
   const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
   const fmtShort=d=>d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
   if(label)label.textContent=`Semaine du ${fmtShort(monday)} au ${fmtShort(sunday)}`;
-  const jours=[1,2,3,4,5,6];
-  let html=`<div style="display:flex;gap:7px;min-width:${jours.length*110}px;padding-bottom:4px">`;
+  const weekKey=monday.toISOString().split('T')[0];
+  // Charger les notes de la semaine
+  const{data:notes}=await sb.from('planning_saison').select('*').eq('semaine_debut',weekKey).eq('type','note_section');
+  const notesByJour={};(notes||[]).forEach(n=>{if(n.jour_semaine!==undefined)notesByJour[n.jour_semaine]=n;});
+  const canEdit=CP&&(CP.is_prof_section||CP.is_bureau);
+  const jours=[1,2,3,4,5,6,0];
+  let html=`<div style="display:flex;gap:6px;min-width:${jours.length*100}px;padding-bottom:4px">`;
   jours.forEach(j=>{
-    const dayDate=new Date(monday);dayDate.setDate(monday.getDate()+(j-1));
+    const offset=j===0?6:j-1;
+    const dayDate=new Date(monday);dayDate.setDate(monday.getDate()+offset);
     const isToday=dayDate.toDateString()===new Date().toDateString();
     const dayLabel=dayDate.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
     const coursDuJour=sectionCours.filter(c=>c.jour===j);
-    html+=`<div style="flex:0 0 105px;background:var(--sf);border:${isToday?'2px solid var(--gold)':'1px solid var(--bd)'};border-radius:10px;overflow:hidden">
-      <div style="background:${isToday?'var(--gold)':'var(--navy)'};color:${isToday?'#000':'#fff'};padding:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;text-align:center">${dayLabel}</div>
+    const note=notesByJour[j];
+    html+=`<div style="flex:0 0 95px;background:var(--sf);border:${isToday?'2px solid var(--gold)':'1px solid var(--bd)'};border-radius:10px;overflow:hidden">
+      <div style="background:${isToday?'var(--gold)':'var(--navy)'};color:${isToday?'#000':'#fff'};padding:5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.68rem;text-align:center;text-transform:capitalize">${dayLabel}</div>
       <div style="padding:5px">`;
     if(!coursDuJour.length){
-      html+=`<div style="font-size:0.62rem;color:var(--mu);text-align:center;padding:6px 0">—</div>`;
+      html+=`<div style="font-size:0.6rem;color:var(--mu);text-align:center;padding:6px 0">—</div>`;
     } else {
       coursDuJour.forEach(c=>{
-        html+=`<div style="background:${c.annule?'rgba(217,79,79,0.06)':'rgba(155,89,182,0.07)'};border-radius:6px;padding:5px 6px;margin-bottom:3px;${c.annule?'opacity:0.6;':''}">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;color:var(--pu)">${c.heure_debut}–${c.heure_fin}</div>
-          <div style="font-size:0.65rem;font-weight:600;color:var(--tx);line-height:1.2">${c.nom||'Cours'}${c.annule?' ❌':''}</div>
+        html+=`<div style="background:rgba(155,89,182,0.07);border-radius:6px;padding:4px 5px;margin-bottom:3px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.68rem;color:var(--pu)">${c.heure_debut}–${c.heure_fin}</div>
+          <div style="font-size:0.6rem;font-weight:600;color:var(--tx);line-height:1.2">${c.nom||'Cours'}</div>
         </div>`;
       });
     }
+    if(note){html+=`<div style="margin-top:4px;background:rgba(242,186,29,0.1);border-radius:5px;padding:4px;font-size:0.6rem;color:var(--tx);line-height:1.3">📝 ${note.contenu}</div>`;}
+    if(canEdit){html+=`<button class="bE" style="width:100%;margin-top:4px;font-size:0.58rem;padding:2px 4px" onclick="editSectionNote(${j},'${weekKey}','${note?.id||''}','${(note?.contenu||'').replace(/'/g,'&#39;')}')">✏️ Note</button>`;}
     html+='</div></div>';
   });
   html+='</div>';
@@ -2469,6 +2551,32 @@ async function renderSectionWeek(){
 }
 
 function changeWeekSection(dir){sectionWeekOffset+=dir;sectionCours=null;renderSectionWeek();}
+
+function editSectionNote(jour,weekKey,noteId,currentNote){
+  const existing=document.getElementById('m-section-note');if(existing)existing.remove();
+  const DN=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const m=document.createElement('div');m.className='mo open';m.id='m-section-note';
+  m.innerHTML=`<div class="modal"><h3>📝 Note — ${DN[jour]}</h3>
+    <div class="fg"><label>Commentaire / Note de séance</label><textarea id="sn-texte" style="min-height:80px" placeholder="Ex: Séance course à pied, Travail au sol, Cours annulé...">${currentNote||''}</textarea></div>
+    <div style="display:flex;gap:7px">
+      <button class="bP" style="flex:1" onclick="saveSectionNote(${jour},'${weekKey}','${noteId}')">💾 Enregistrer</button>
+      ${noteId?`<button class="bR" onclick="deleteSectionNote('${noteId}')">🗑️</button>`:''}
+      <button class="bS" onclick="cm('m-section-note')">Annuler</button>
+    </div>
+  </div>`;
+  document.body.appendChild(m);
+}
+
+async function saveSectionNote(jour,weekKey,noteId){
+  const contenu=document.getElementById('sn-texte')?.value.trim();if(!contenu)return;
+  if(noteId){
+    await sb.from('planning_saison').update({contenu}).eq('id',noteId);
+  } else {
+    await sb.from('planning_saison').insert({id:crypto.randomUUID(),prof_id:CU.id,semaine_debut:weekKey,semaine_fin:weekKey,contenu,type:'note_section',jour_semaine:jour,created_at:new Date().toISOString()});
+  }
+  cm('m-section-note');showSync();toast('Note enregistrée !');renderSectionWeek();
+}
+function deleteSectionNote(id){askConfirm('Supprimer cette note ?','🗑️',async()=>{await sb.from('planning_saison').delete().eq('id',id);cm('m-section-note');renderSectionWeek();toast('Note supprimée.');});}
 
 // ============================================================
 // ENFANTS — MODIFIER + PAGE ENFANT + INSCRIPTION COURS
