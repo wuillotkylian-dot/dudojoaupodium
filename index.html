@@ -815,14 +815,6 @@ function switchAuthTab(tab){document.getElementById('tab-login').classList.toggl
 // ============================================================
 // INSCRIPTION — MULTI RÔLES
 // ============================================================
-function toggleRoleCheck(role){
-  const chk=document.getElementById('chk-'+role);
-  const fields=document.getElementById('fields-'+role);
-  const item=document.getElementById('rc-'+role);
-  if(fields)fields.style.display=chk?.checked?'':'none';
-  if(item)item.classList.toggle('checked',!!chk?.checked);
-}
-
 function setRegRole(r){} // legacy no-op
 
 async function doRegister(){
@@ -987,7 +979,7 @@ function showMainPage(p,btn){
   if(p==='prof_section')renderProfSectionPage();
 }
 
-function loadJudokaView(){
+function loadJudokaView_base(){
   document.getElementById('hname').textContent=jFN(CP);
   document.getElementById('hmeta').textContent=(CP.cat||'')+' • '+(CP.poids||'');
   showStep('step-dash');
@@ -1010,7 +1002,7 @@ function openEP(){openEditProfile();}
 // ============================================================
 // PROFILE EDIT
 // ============================================================
-function openEditProfile(){
+function openEditProfile_legacy(){
   document.getElementById('ep-prenom').value=CP.prenom||'';
   document.getElementById('ep-nom').value=CP.nom||'';
   document.getElementById('ep-cat').value=CP.cat||'Seniors';
@@ -1523,40 +1515,6 @@ function filterDojo(dojo,btn){
   document.querySelectorAll('.dojo-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
   loadClubPlanning(dojo);
 }
-function renderClubPlanning(cours,dojoFilter){
-  const el=document.getElementById('planning-view');if(!el)return;
-  const filtered=dojoFilter==='tous'?cours:cours.filter(c=>c.dojo===dojoFilter);
-  if(!filtered.length){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--mu)"><div style="font-size:1.8rem;margin-bottom:8px">📅</div><p style="font-size:0.8rem">Aucun cours pour le moment.</p></div>';return;}
-  const byDay={0:[],1:[],2:[],3:[],4:[],5:[],6:[]};
-  filtered.forEach(c=>{if(byDay[c.jour]!==undefined)byDay[c.jour].push(c);});
-  const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-  let html='';
-  [1,2,3,4,5,6,0].forEach(d=>{
-    if(!byDay[d].length)return;
-    html+=`<div class="club-day"><div class="club-day-title">${dayNames[d]}</div>`;
-    byDay[d].sort((a,b)=>a.heure_debut>b.heure_debut?1:-1).forEach(c=>{
-      const dc=DOJO_CLASSES[c.dojo]||'';
-      html+=`<div class="cours-slot ${dc}"><div class="cs-time">${c.heure_debut} → ${c.heure_fin}</div><div class="cs-name">${c.nom}</div><div class="cs-meta">${c.categorie||''} • ${c.dojo||''}${c.prof?' • '+c.prof:''}</div></div>`;
-    });
-    html+='</div>';
-  });
-  el.innerHTML=html;
-}
-
-async function loadEquipe(){
-  const{data:profs}=await sb.from('profiles').select('*').eq('is_prof',true).order('nom');
-  const{data:coaches}=await sb.from('profiles').select('*').eq('is_coach',true).order('nom');
-  const el=document.getElementById('equipe-view');if(!el)return;
-  const seen=new Set();
-  const all=[...(profs||[]),...(coaches||[])].filter(p=>{if(seen.has(p.id))return false;seen.add(p.id);return true;});
-  if(!all.length){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--mu)"><div style="font-size:1.8rem">👨‍🏫</div><p style="font-size:0.8rem;margin-top:8px">Aucun membre de l\'équipe renseigné.</p></div>';return;}
-  el.innerHTML=all.map(p=>{
-    const roles=[];if(p.is_prof)roles.push('Professeur');if(p.is_coach)roles.push('Coach compétition');
-    const av=p.avatar_url?`<img src="${p.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;">`:`<span style="font-size:1.4rem;color:#fff">${((p.prenom||'')[0]||(p.nom||'')[0]||'?').toUpperCase()}</span>`;
-    return `<div class="prof-card"><div class="prof-avatar-big">${av}</div><div style="flex:1"><div class="prof-name">${jFN(p)}</div><div class="prof-role-tag">${p.titre||roles.join(' · ')}</div>${p.diplome?`<div class="prof-diplome">🎖️ ${p.diplome}</div>`:''} ${p.bio?`<div style="font-size:0.78rem;color:var(--tx);margin-top:4px;line-height:1.4">${p.bio}</div>`:''} ${(p.dojos||[]).length?`<div style="margin-top:5px">${p.dojos.map(d=>`<span class="prof-dojo-tag">${d}</span>`).join('')}</div>`:''} ${(p.cats||[]).length?`<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px">${p.cats.map(c=>`<span style="font-size:0.6rem;padding:2px 7px;border-radius:10px;font-weight:600;background:rgba(64,65,104,0.08);color:var(--navy)">${c}</span>`).join('')}</div>`:''}</div></div>`;
-  }).join('');
-}
-
 async function loadAnnonces(){
   const{data:ann}=await sb.from('annonces').select('*').order('created_at',{ascending:false});
   const el=document.getElementById('annonces-view');if(!el)return;
@@ -1701,17 +1659,6 @@ async function saveAppel(){
   showSync();toast('Appel enregistré ! ✅');
 }
 
-async function loadProfCours(){
-  const{data:cours}=await sb.from('cours').select('*').eq('prof_id',CU.id).order('jour').order('heure_debut');
-  const el=document.getElementById('prof-cours-list');if(!el)return;
-  const dayNames=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-  if(!cours||!cours.length){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--mu)"><div style="font-size:1.8rem">📅</div><p style="font-size:0.8rem;margin-top:8px">Aucun cours assigné. Ajoute-en un !</p></div>';return;}
-  el.innerHTML=cours.map(c=>`<div class="cours-slot ${DOJO_CLASSES[c.dojo]||''}" style="display:flex;justify-content:space-between;align-items:center">
-    <div><div class="cs-time">${dayNames[c.jour]} ${c.heure_debut}–${c.heure_fin}</div><div class="cs-name">${c.nom}</div><div class="cs-meta">${c.categorie||''} • ${c.dojo||''}</div></div>
-    <button class="bR" onclick="deleteCours('${c.id}')">🗑️</button>
-  </div>`).join('');
-}
-
 function openAddCours(){
   // Build and show inline modal
   const modal=document.getElementById('m-add-cours');
@@ -1847,7 +1794,7 @@ async function loadJudokaStats(){
 // Patch loadJudokaView to add stats + notifications
 const _origLoadJudokaView=loadJudokaView;
 function loadJudokaView(){
-  _origLoadJudokaView();
+  loadJudokaView_base();
   setTimeout(()=>{
     const dash=document.getElementById('step-dash');if(!dash)return;
     const existing=document.getElementById('judoka-stats-home');if(!existing){const d=document.createElement('div');d.id='judoka-stats-home';const fc=dash.children[1];if(fc)dash.insertBefore(d,fc);else dash.appendChild(d);}
@@ -2124,6 +2071,7 @@ function setCalType(t,btn){
   document.querySelectorAll('[id^="cal-type-"]').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
 }
+function toggleCalCat(btn,cat){
   if(cat==='Tous'){calSelectedCats=[];document.querySelectorAll('#cal-cats-sel .chb').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');return;}
   const allBtn=document.querySelector('#cal-cats-sel .chb:last-child');if(allBtn)allBtn.classList.remove('sel');
   if(calSelectedCats.includes(cat)){calSelectedCats=calSelectedCats.filter(c=>c!==cat);btn.classList.remove('sel');}
@@ -2195,8 +2143,7 @@ async function toggleInscriptionCours(coursId){
   loadClubPlanning(currentDojo||'tous');
 }
 
-// Update renderClubPlanning to add inscription buttons
-const _origRenderClubPlanning=renderClubPlanning;
+// renderClubPlanning avec boutons inscription
 function renderClubPlanning(cours,dojoFilter){
   const el=document.getElementById('planning-view');if(!el)return;
   const filtered=dojoFilter==='tous'?cours:cours.filter(c=>c.dojo===dojoFilter);
