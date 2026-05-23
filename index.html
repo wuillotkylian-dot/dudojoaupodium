@@ -282,6 +282,7 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
         </div>
         <div class="fg"><label>Email</label><input type="email" id="reg-email" placeholder="ton@email.com"></div>
         <div class="fg"><label>Mot de passe</label><input type="password" id="reg-password" placeholder="Min. 6 caractères"></div>
+        <div class="fg"><label>Confirmer le mot de passe</label><input type="password" id="reg-password2" placeholder="Répète ton mot de passe"></div>
         <div class="fg"><label>Code du club</label><input type="text" id="reg-club-code" placeholder="Code fourni par ton club" autocomplete="off"></div>
 
         <div class="fg"><label>Je suis (plusieurs choix possibles)</label>
@@ -832,6 +833,8 @@ async function doRegister(){
   const err=document.getElementById('reg-error');
   if(!prenom||!nom||!email||!password){err.textContent='Remplis tous les champs.';return;}
   if(password.length<6){err.textContent='Mot de passe trop court (6 min).';return;}
+  const password2=document.getElementById('reg-password2')?.value;
+  if(password2&&password!==password2){err.textContent='Les mots de passe ne correspondent pas.';return;}
 
   // Code club obligatoire
   const clubCode=document.getElementById('reg-club-code').value.trim();
@@ -1499,7 +1502,7 @@ function showClubSection(sec){
       </div>
       <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showClubSection('calendrier')">
         <div style="font-size:2rem;width:48px;text-align:center">🏆</div>
-        <div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Toutes les compétitions par catégorie</div></div>
+        <div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions, stages & événements</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Toutes les compétitions par catégorie</div></div>
         <div style="font-size:1.2rem;color:var(--bd)">›</div>
       </div>
     </div>${CP.is_parent?'<div id="enfants-section" style="margin-top:16px"></div>':''}`;
@@ -1508,7 +1511,7 @@ function showClubSection(sec){
   else if(sec==='planning'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.92rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy)">📅 Planning des cours</div><button class="bS" onclick="showClubSection('main')">← Retour</button></div><div class="dojo-filter"><button class="dojo-btn active" onclick="filterDojo('tous',this)">Tous</button><button class="dojo-btn" onclick="filterDojo('Chartres - La Madeleine',this)">La Madeleine</button><button class="dojo-btn" onclick="filterDojo('Chartres - Dojo Section',this)">Section</button><button class="dojo-btn" onclick="filterDojo('Mainvilliers',this)">Mainvilliers</button><button class="dojo-btn" onclick="filterDojo('Lucé',this)">Lucé</button><button class="dojo-btn" onclick="filterDojo('Fontaine',this)">Fontaine</button></div><div id="planning-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadClubPlanning('tous');}
   else if(sec==='equipe'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.92rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy)">👨‍🏫 L'équipe pédagogique</div><button class="bS" onclick="showClubSection('main')">← Retour</button></div><div id="equipe-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadEquipe();}
   else if(sec==='annonces'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.92rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy)">📢 Annonces</div><button class="bS" onclick="showClubSection('main')">← Retour</button></div><div id="annonces-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadAnnonces();}
-  else if(sec==='calendrier'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.92rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy)">🏆 Calendrier Compétitions</div><button class="bS" onclick="showClubSection('main')">← Retour</button></div><div id="club-cal-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadCalendrier('club');}
+  else if(sec==='calendrier'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.92rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy)">📅 Calendrier compétitions, stages & événements</div><button class="bS" onclick="showClubSection('main')">← Retour</button></div><div id="club-cal-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadCalendrier('club');}
   window.scrollTo(0,0);
 }
 
@@ -1584,7 +1587,7 @@ function showProfSection(sec){
       <div style="background:var(--sf);border:2px solid rgba(242,186,29,0.4);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showProfSection('planning')"><div style="font-size:2rem;width:48px;text-align:center">📅</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Gérer le planning</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Ajouter et modifier les cours</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
       <div style="background:var(--sf);border:2px solid rgba(42,157,92,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showProfSection('annonces')"><div style="font-size:2rem;width:48px;text-align:center">📢</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Envoyer une annonce</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Communication vers les licenciés</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
       <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showProfSection('profil')"><div style="font-size:2rem;width:48px;text-align:center">👤</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Mon profil prof</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Photo, diplômes, dojos</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
-      <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showProfSection('calendrier')"><div style="font-size:2rem;width:48px;text-align:center">📅</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Ajouter compétitions et stages</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
+      <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showProfSection('calendrier')"><div style="font-size:2rem;width:48px;text-align:center">📅</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions, stages & événements</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Ajouter compétitions, stages, événements</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
       <div style="background:var(--sf);border:2px solid rgba(42,157,92,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showProfSection('licencies')"><div style="font-size:2rem;width:48px;text-align:center">👥</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Mes licenciés</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Liste et inscriptions aux cours</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
     </div>`;
   }
@@ -1655,7 +1658,7 @@ function showProfSection(sec){
         </div>
       </div>
       <div class="fg"><label>Nom</label><input type="text" id="cal-nom-prof" placeholder="Ex: Label Excellence Harnes, Stage Clermont..."></div>
-      <div class="fg"><label>Date</label><input type="date" id="cal-date-prof"></div>
+      <div class="fg"><label>Date(s)</label><input type="text" id="cal-date-prof" placeholder="Ex: 15 mars 2027 ou 15-17 mars 2027"></div>
       <div class="fg"><label>Lieu</label><input type="text" id="cal-lieu-prof" placeholder="Ville"></div>
       <div class="fg"><label>Informations (adresse, horaires...)</label><textarea id="cal-info-prof" placeholder="Ex: Halle des Sports, 12 rue des Arènes — Accueil à 8h30, pesée à 9h..." style="min-height:70px"></textarea></div>
       <button class="bP" onclick="saveProfCalEvent()">💾 Ajouter</button>
@@ -1861,32 +1864,37 @@ let calCtx=null;
 async function loadCalendrier(context){
   const elId=context==='section'?'section-cal-view':'club-cal-view';
   const el=document.getElementById(elId);if(!el)return;
-  let query=sb.from('competitions_club').select('*').order('date',{ascending:true});
-  if(context==='section')query=query.in('categorie',['Minimes','Cadets','Cadets(tes)']);
+  let query=sb.from('competitions_club').select('*').order('created_at',{ascending:true});
+  if(context==='section')query=query.in('categorie',['Minimes','Cadets(tes)','Juniors','Seniors','Tous']);
   const{data:comps}=await query;
   let filtered=comps||[];
-  // Filtre catégorie pour licenciés simples
-  const userCat=CP.cat_club||CP.cat||null;
+  const userCat=CP.cat||null;
   if(context==='club'&&userCat&&!CP.is_competiteur&&!CP.is_bureau&&!CP.is_coach&&!CP.is_prof&&!CP.is_judoka){
     filtered=filtered.filter(c=>c.categorie===userCat||c.categorie==='Tous');
   }
-  const canEdit=CP.is_bureau||CP.is_coach||CP.is_prof_section;
-  const addBtn=canEdit?`<button class="bG" style="width:100%;margin-bottom:14px" onclick="openAddCalComp('${context}')">+ Ajouter une compétition</button>`:'';
-  if(!filtered.length){el.innerHTML=addBtn+'<div style="text-align:center;padding:24px;color:var(--mu)"><div style="font-size:1.8rem">🏆</div><p style="font-size:0.8rem;margin-top:8px">Aucune compétition programmée.</p></div>';return;}
+  // Judokas et membres section = lecture seule, jamais de bouton ajout
+  const canEdit=CP.is_bureau||CP.is_coach||CP.is_prof||CP.is_prof_section;
+  const addBtn=''; // Jamais de bouton ajout ici — uniquement dans espace Prof
+  if(!filtered.length){el.innerHTML=addBtn+'<div style="text-align:center;padding:24px;color:var(--mu)"><div style="font-size:1.8rem">📅</div><p style="font-size:0.8rem;margin-top:8px">Aucun événement programmé.</p></div>';return;}
   const cats=[...new Set(filtered.map(c=>c.categorie))];
-  const filterHtml=cats.length>1?`<div class="dojo-filter"><button class="dojo-btn active" onclick="filterCalCat('tous',this,'${elId}-list')">Toutes</button>${cats.map(c=>`<button class="dojo-btn" onclick="filterCalCat('${c}',this,'${elId}-list')">${c}</button>`).join('')}</div>`:'';
+  const filterHtml=cats.length>1?`<div class="dojo-filter"><button class="dojo-btn active" onclick="filterCalCat('tous',this,'${elId}-list')">Tous</button>${cats.map(c=>`<button class="dojo-btn" onclick="filterCalCat('${c}',this,'${elId}-list')">${c}</button>`).join('')}</div>`:'';
+  const TYPE_EMOJI={competition:'🏆',stage:'🏕️',evenement:'🎉'};
   const compsHtml=filtered.map(c=>{
     const col=CAT_COLORS[c.categorie]||'var(--navy)';
-    const dateStr=c.date?new Date(c.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'Date à confirmer';
+    const dateStr=c.date_texte||c.date||'Date à confirmer';
+    const emoji=TYPE_EMOJI[c.type_event]||'📅';
     return `<div class="cal-comp-item" data-cat="${c.categorie}" style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:8px;border-left:4px solid ${col}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div style="flex:1"><div style="font-weight:700;font-size:0.9rem;color:var(--navy)">${c.nom}</div><div style="font-size:0.72rem;color:var(--mu);margin-top:2px">📅 ${dateStr}</div>${c.lieu?`<div style="font-size:0.72rem;color:var(--mu)">📍 ${c.lieu}</div>`:''}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:0.9rem;color:var(--navy)">${emoji} ${c.nom}</div>
+          <div style="font-size:0.72rem;color:var(--mu);margin-top:2px">📅 ${dateStr}${c.lieu?' • 📍'+c.lieu:''}</div>
+          ${c.info?`<div style="font-size:0.72rem;color:var(--tx);margin-top:4px;background:var(--sf2);border-radius:6px;padding:5px 8px;line-height:1.4">ℹ️ ${c.info}</div>`:''}
+        </div>
         <span style="font-size:0.62rem;padding:3px 9px;border-radius:10px;font-weight:700;background:${col}22;color:${col};white-space:nowrap;margin-left:8px">${c.categorie}</span>
       </div>
-      ${canEdit?`<div style="display:flex;gap:5px;margin-top:8px"><button class="bE" onclick="editCalComp('${c.id}','${context}')">✏️</button><button class="bR" onclick="deleteCalComp('${c.id}','${context}')">🗑️</button></div>`:''}
     </div>`;
   }).join('');
-  el.innerHTML=addBtn+filterHtml+`<div id="${elId}-list">${compsHtml}</div>`;
+  el.innerHTML=filterHtml+`<div id="${elId}-list">${compsHtml}</div>`;
 }
 function filterCalCat(cat,btn,listId){
   const list=document.getElementById(listId);if(!list)return;
@@ -1928,18 +1936,27 @@ function renderSectionPage(){showSectionSection('main');}
 function showSectionSection(sec){
   const pg=document.getElementById('page-section');if(!pg)return;
   if(sec==='main'){
-    pg.innerHTML=`<div style="margin-bottom:16px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.4rem;color:var(--navy)">Section Judo</div><div style="font-size:0.65rem;color:var(--mu);letter-spacing:0.1em;text-transform:uppercase">Collège Hélène Boucher — Chartres</div></div>
-    <div style="display:grid;grid-template-columns:1fr;gap:12px">
-      <div style="background:var(--sf);border:2px solid rgba(64,65,104,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showSectionSection('planning')"><div style="font-size:2rem;width:48px;text-align:center">📅</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Planning des cours</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">10 rue de Châteaudun, Chartres</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
-      <div style="background:var(--sf);border:2px solid rgba(42,157,92,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showSectionSection('equipe')"><div style="font-size:2rem;width:48px;text-align:center">👨‍🏫</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Équipe pédagogique</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Les intervenants</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
-      <div style="background:var(--sf);border:2px solid rgba(242,186,29,0.4);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showSectionSection('annonces')"><div style="font-size:2rem;width:48px;text-align:center">📢</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Annonces</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Communications section</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
-      <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showSectionSection('calendrier')"><div style="font-size:2rem;width:48px;text-align:center">🏆</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Minimes & Cadets</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
+    pg.innerHTML=`<div style="margin-bottom:12px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.4rem;color:var(--navy)">Section Judo</div>
+      <div style="font-size:0.65rem;color:var(--mu);letter-spacing:0.1em;text-transform:uppercase">Collège Hélène Boucher — Chartres</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <button class="bS" onclick="changeWeekSection(-1)">← Préc.</button>
+      <div id="section-week-label" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;color:var(--navy);text-align:center;flex:1;margin:0 8px"></div>
+      <button class="bS" onclick="changeWeekSection(1)">Suiv. →</button>
+    </div>
+    <div id="section-week-planning" style="overflow-x:auto;margin-bottom:16px;-webkit-overflow-scrolling:touch"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:var(--sf);border:2px solid rgba(42,157,92,0.25);border-radius:14px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="showSectionSection('equipe')"><div style="font-size:1.6rem">👨‍🏫</div><div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.95rem;text-transform:uppercase;color:var(--navy)">Équipe</div><div style="font-size:0.68rem;color:var(--mu)">Les intervenants</div></div></div>
+      <div style="background:var(--sf);border:2px solid rgba(242,186,29,0.4);border-radius:14px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="showSectionSection('annonces')"><div style="font-size:1.6rem">📢</div><div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.95rem;text-transform:uppercase;color:var(--navy)">Annonces</div><div style="font-size:0.68rem;color:var(--mu)">Communications</div></div></div>
+      <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:14px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;grid-column:span 2" onclick="showSectionSection('calendrier')"><div style="font-size:1.6rem">📅</div><div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.95rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions, stages & événements</div></div></div>
     </div>`;
+    sectionWeekOffset=0;renderSectionWeek();
   }
   else if(sec==='planning'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📅 Planning Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div style="font-size:0.78rem;color:var(--mu);margin-bottom:12px">📍 10 rue de Châteaudun, Chartres</div><div id="section-planning-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionPlanning();}
   else if(sec==='equipe'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">👨‍🏫 Équipe Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div id="section-equipe-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionEquipe();}
   else if(sec==='annonces'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📢 Annonces Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div id="section-annonces-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionAnnonces();}
-  else if(sec==='calendrier'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">🏆 Calendrier Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div id="section-cal-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadCalendrier('section');}
+  else if(sec==='calendrier'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📅 Calendrier compétitions, stages & événements</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div id="section-cal-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadCalendrier('section');}
   window.scrollTo(0,0);
 }
 async function loadSectionPlanning(){
@@ -1975,14 +1992,14 @@ function renderBureauPage(){
   pg.innerHTML=`<div style="margin-bottom:16px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.4rem;color:var(--navy)">Espace Bureau</div><div style="font-size:0.65rem;color:var(--mu);letter-spacing:0.1em;text-transform:uppercase">CMJ28</div></div>
   <div style="display:grid;grid-template-columns:1fr;gap:12px">
     <div style="background:var(--sf);border:2px solid rgba(242,186,29,0.4);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showBureauSection('annonces')"><div style="font-size:2rem;width:48px;text-align:center">📢</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Publier une annonce</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Vers tous les licenciés</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
-    <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showBureauSection('calendrier')"><div style="font-size:2rem;width:48px;text-align:center">🏆</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Gérer le calendrier du club</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
+    <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showBureauSection('calendrier')"><div style="font-size:2rem;width:48px;text-align:center">🏆</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions, stages & événements</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Gérer le calendrier du club</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
     <div style="background:var(--sf);border:2px solid rgba(64,65,104,0.15);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showBureauFiche()"><div style="font-size:2rem;width:48px;text-align:center">👤</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Ma fiche bureau</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Titre, contact, photo</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
   </div>`;
 }
 function showBureauSection(sec){
   const pg=document.getElementById('page-bureau');if(!pg)return;
   if(sec==='annonces'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📢 Publier une annonce</div><button class="bS" onclick="renderBureauPage()">← Retour</button></div><div class="card"><div class="fg"><label>Titre</label><input type="text" id="bureau-ann-titre" placeholder="Ex: Assemblée Générale..."></div><div class="fg"><label>Message</label><textarea id="bureau-ann-texte" style="min-height:100px"></textarea></div><div class="fg"><label>Destinataires</label><select id="bureau-ann-dest"><option value="tous">Tous les licenciés</option><option value="Baby">Baby</option><option value="Mini-Poussins">Mini-Poussins</option><option value="Poussins">Poussins</option><option value="Benjamins">Benjamins</option><option value="Minimes">Minimes</option><option value="Cadets">Cadets</option><option value="Adultes">Adultes</option><option value="Taïso">Taïso</option></select></div><button class="bP" onclick="sendBureauAnnonce()">📨 Publier</button></div><div class="ST">Annonces publiées</div><div id="bureau-ann-list"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadBureauAnnonces();}
-  else if(sec==='calendrier'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">🏆 Calendrier Compétitions</div><button class="bS" onclick="renderBureauPage()">← Retour</button></div><div id="club-cal-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadCalendrier('club');}
+  else if(sec==='calendrier'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📅 Calendrier compétitions, stages & événements</div><button class="bS" onclick="renderBureauPage()">← Retour</button></div><div id="club-cal-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadCalendrier('club');}
   else if(sec==='stats'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📊 Statistiques Club</div><button class="bS" onclick="renderBureauPage()">← Retour</button></div><div id="stats-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadClubStats();}
   window.scrollTo(0,0);
 }
@@ -2035,7 +2052,7 @@ function renderProfSectionPage(){
   <div style="display:grid;grid-template-columns:1fr;gap:12px">
     <div style="background:var(--sf);border:2px solid rgba(64,65,104,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showProfSectionSection('planning')"><div style="font-size:2rem;width:48px;text-align:center">📅</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Gérer le planning</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Ajouter, modifier, annuler les cours</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
     <div style="background:var(--sf);border:2px solid rgba(242,186,29,0.4);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showProfSectionSection('annonces')"><div style="font-size:2rem;width:48px;text-align:center">📢</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Annonces Section</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Communiquer avec les judokas</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
-    <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showProfSectionSection('calendrier')"><div style="font-size:2rem;width:48px;text-align:center">🏆</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Gérer le calendrier Section</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
+    <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showProfSectionSection('calendrier')"><div style="font-size:2rem;width:48px;text-align:center">🏆</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions, stages & événements</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Gérer le calendrier Section</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
     <div style="background:var(--sf);border:2px solid rgba(64,65,104,0.15);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showProfSectionProfil()"><div style="font-size:2rem;width:48px;text-align:center">👤</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Mon profil</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Photo, diplômes, bio</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
   </div>`;
 }
@@ -2045,7 +2062,7 @@ function showProfSectionSection(sec){
   else if(sec==='licencies'){loadLicencies();}
   else if(sec==='saison'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📋 Planification Saison</div><button class="bS" onclick="renderProfSectionPage()">← Retour</button></div><div class="card"><div class="ST" style="font-size:0.78rem">Ajouter une période</div><div class="tc" style="margin-bottom:8px"><div class="fg" style="margin:0"><label>Du</label><input type="date" id="saison-debut"></div><div class="fg" style="margin:0"><label>Au</label><input type="date" id="saison-fin"></div></div><div class="fg"><label>Type</label><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px"><button type="button" class="ftab active" id="saison-type-technique" onclick="setSaisonType('technique',this)">🥋 Technique</button><button type="button" class="ftab" id="saison-type-physique" onclick="setSaisonType('physique',this)">💪 Physique</button><button type="button" class="ftab" id="saison-type-competition" onclick="setSaisonType('competition',this)">🏆 Compétition</button><button type="button" class="ftab" id="saison-type-autre" onclick="setSaisonType('autre',this)">📝 Autre</button></div></div><div class="fg"><label>Contenu</label><textarea id="saison-contenu" style="min-height:80px" placeholder="Ex: Seoi-nage + Uchi-mata..."></textarea></div><button class="bP" onclick="saveSaisonPeriode()">💾 Enregistrer</button></div><div class="ST">Planning saison</div><div id="saison-list"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;saisonType='technique';loadSaisonPlanning();}
   else if(sec==='annonces'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📢 Annonces Section</div><button class="bS" onclick="renderProfSectionPage()">← Retour</button></div><div class="card"><div class="fg"><label>Titre</label><input type="text" id="sann-titre"></div><div class="fg"><label>Message</label><textarea id="sann-texte" style="min-height:80px"></textarea></div><button class="bP" onclick="sendSectionAnnonce()">📨 Publier</button></div><div class="ST">Mes annonces</div><div id="sann-list"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionAnnoncesList();}
-  else if(sec==='calendrier'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">🏆 Calendrier Section</div><button class="bS" onclick="renderProfSectionPage()">← Retour</button></div><div id="section-cal-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadCalendrier('section');}
+  else if(sec==='calendrier'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📅 Calendrier compétitions, stages & événements</div><button class="bS" onclick="renderProfSectionPage()">← Retour</button></div><div id="section-cal-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadCalendrier('section');}
   window.scrollTo(0,0);
 }
 async function loadSectionCoursList(){
@@ -2101,7 +2118,12 @@ async function loadSectionAnnoncesList(){
 function deleteSectionAnnonce(id){askConfirm('Supprimer ?','🗑️',async()=>{await sb.from('annonces_section').delete().eq('id',id);loadSectionAnnoncesList();toast('Supprimée.');});}
 
 let calSelectedCats=[];
-function toggleCalCat(btn,cat){
+let calProfType='competition';
+function setCalType(t,btn){
+  calProfType=t;
+  document.querySelectorAll('[id^="cal-type-"]').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+}
   if(cat==='Tous'){calSelectedCats=[];document.querySelectorAll('#cal-cats-sel .chb').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');return;}
   const allBtn=document.querySelector('#cal-cats-sel .chb:last-child');if(allBtn)allBtn.classList.remove('sel');
   if(calSelectedCats.includes(cat)){calSelectedCats=calSelectedCats.filter(c=>c!==cat);btn.classList.remove('sel');}
@@ -2112,12 +2134,11 @@ function toggleCalCatAll(){calSelectedCats=[];document.querySelectorAll('#cal-ca
 async function saveProfCalEvent(){
   const nom=document.getElementById('cal-nom-prof')?.value.trim();if(!nom){toast('Donne un nom !',1);return;}
   const cats=calSelectedCats.length?calSelectedCats:['Tous'];
-  const date=document.getElementById('cal-date-prof')?.value||null;
+  const date=document.getElementById('cal-date-prof')?.value.trim()||'';
   const lieu=document.getElementById('cal-lieu-prof')?.value||'';
   const info=document.getElementById('cal-info-prof')?.value||'';
-  // Insert one entry per category
   for(const cat of cats){
-    await sb.from('competitions_club').insert({id:crypto.randomUUID(),nom,date,lieu,info,categorie:cat,type_event:calProfType,created_by:CU.id,created_at:new Date().toISOString()});
+    await sb.from('competitions_club').insert({id:crypto.randomUUID(),nom,date_texte:date,lieu,info,categorie:cat,type_event:calProfType,created_by:CU.id,created_at:new Date().toISOString()});
   }
   if(document.getElementById('cal-nom-prof'))document.getElementById('cal-nom-prof').value='';
   if(document.getElementById('cal-date-prof'))document.getElementById('cal-date-prof').value='';
@@ -2125,12 +2146,11 @@ async function saveProfCalEvent(){
   if(document.getElementById('cal-info-prof'))document.getElementById('cal-info-prof').value='';
   calSelectedCats=[];document.querySelectorAll('#cal-cats-sel .chb').forEach(b=>b.classList.remove('sel'));
   showSync();toast('Événement ajouté !');loadProfCalList();
-  // Notifier les judokas concernés
   const{data:users}=await sb.from('profiles').select('id,cat').or('is_competiteur.eq.true,is_section.eq.true');
   for(const u of users||[]){
     if(cats.includes('Tous')||cats.includes(u.cat)){
       const typeLabel=calProfType==='competition'?'🏆 Compétition':calProfType==='stage'?'🏕️ Stage':'🎉 Événement';
-      await sendNotification(u.id,`${typeLabel}: ${nom}`,`${date?new Date(date+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):''}${lieu?' — '+lieu:''}`,`calendrier_${calProfType}`);
+      await sendNotification(u.id,`${typeLabel}: ${nom}`,`${date}${lieu?' — '+lieu:''}`,`calendrier_${calProfType}`);
     }
   }
 }
@@ -2144,7 +2164,7 @@ async function loadProfCalList(){
   const grouped={};
   data.forEach(c=>{const key=`${c.nom}_${c.date}`;if(!grouped[key])grouped[key]={...c,categories:[c.categorie]};else grouped[key].categories.push(c.categorie);});
   el.innerHTML=Object.values(grouped).map(c=>{
-    const dateStr=c.date?new Date(c.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short',year:'numeric'}):'Date TBD';
+    const dateStr=c.date_texte||c.date||'Date TBD';
     const emoji=TYPE_EMOJI[c.type_event]||'📅';
     const cats=c.categories||[c.categorie];
     const catHtml=cats.map(cat=>{const col=CAT_COLORS[cat]||'var(--navy)';return `<span style="font-size:0.6rem;padding:2px 8px;border-radius:10px;font-weight:700;background:${col}22;color:${col};white-space:nowrap">${cat}</span>`;}).join('');
@@ -2254,20 +2274,32 @@ async function loadProfCours(){
 // ============================================================
 async function loadLicencies(){
   const pg=document.getElementById('page-prof');if(!pg)return;
-  pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">👥 Licenciés & inscriptions</div><button class="bS" onclick="renderProfPage()">← Retour</button></div><div id="licencies-list"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;
-  const{data:cours}=await sb.from('cours').select('*').eq('prof_id',CU.id);
-  const{data:licencies}=await sb.from('profiles').select('*').eq('is_licencie',true).order('nom');
+  pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">👥 Licenciés & inscriptions</div><button class="bS" onclick="showProfSection('main')">← Retour</button></div><div id="licencies-list"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;
+  window.scrollTo(0,0);
+  const[{data:cours},{data:licencies}]=await Promise.all([
+    sb.from('cours').select('*'),
+    sb.from('profiles').select('*').eq('is_licencie',true).order('cat').order('nom')
+  ]);
   const el=document.getElementById('licencies-list');if(!el)return;
   if(!licencies||!licencies.length){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--mu)">Aucun licencié.</div>';return;}
-  el.innerHTML=licencies.map(l=>{
-    const mesCours=(cours||[]).filter(c=>(c.inscrits||[]).includes(l.id));
-    return `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:7px">
-      <div style="font-weight:700;font-size:0.88rem;color:var(--navy)">${jFN(l)}</div>
-      <div style="font-size:0.68rem;color:var(--mu);margin-bottom:4px">${l.cat||''}${l.poids?' • '+l.poids:''}</div>
-      ${mesCours.length?mesCours.map(c=>`<span style="font-size:0.62rem;padding:2px 8px;border-radius:8px;background:rgba(64,65,104,0.08);color:var(--navy);margin-right:4px;display:inline-block;margin-bottom:2px">${c.nom} (${['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'][c.jour]})</span>`).join(''):'<span style="font-size:0.68rem;color:var(--mu);font-style:italic">Aucun cours</span>'}
-    </div>`;
-  }).join('');
-  window.scrollTo(0,0);
+  // Grouper par catégorie
+  const byCat={};
+  licencies.forEach(l=>{const cat=l.cat||'Non renseignée';if(!byCat[cat])byCat[cat]=[];byCat[cat].push(l);});
+  const CATS_ORDER=['Baby','Mini-Poussins','Poussins','Benjamins','Minimes','Cadets(tes)','Juniors','Seniors','Vétérans','Non renseignée'];
+  let html='';
+  CATS_ORDER.forEach(cat=>{
+    if(!byCat[cat]||!byCat[cat].length)return;
+    html+=`<div style="margin-bottom:18px"><div class="ST">${cat} (${byCat[cat].length})</div>`;
+    byCat[cat].forEach(l=>{
+      const mesCours=(cours||[]).filter(c=>(c.inscrits||[]).includes(l.id));
+      html+=`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:6px">
+        <div style="font-weight:700;font-size:0.88rem;color:var(--navy)">${jFN(l)}${l.poids?' <span style="font-size:0.68rem;color:var(--mu)">• '+l.poids+'</span>':''}</div>
+        <div style="margin-top:4px">${mesCours.length?mesCours.map(c=>`<span style="font-size:0.62rem;padding:2px 8px;border-radius:8px;background:rgba(64,65,104,0.08);color:var(--navy);margin-right:4px;display:inline-block;margin-bottom:2px">📅 ${c.nom} — ${c.dojo||''} (${['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'][c.jour]} ${c.heure_debut})</span>`).join(''):'<span style="font-size:0.68rem;color:var(--mu);font-style:italic">Aucun cours inscrit</span>'}</div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html;
 }
 
 // licencies intégré directement dans showProfSection
@@ -2435,8 +2467,151 @@ async function loadEnfantsSection(){
   const el=document.getElementById('enfants-section');if(!el)return;
   const{data:enfants}=await sb.from('enfants').select('*').eq('parent_id',CU.id).order('prenom');
   const enf=enfants||[];
-  el.innerHTML=`<div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.92rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy);margin-bottom:11px;display:flex;align-items:center;gap:8px">👨‍👩‍👧 Mes enfants<span style="flex:1;height:2px;background:var(--bd)"></span></div>${enf.map(e=>`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:700;font-size:0.88rem;color:var(--navy)">${e.prenom} ${e.nom||''}</div><div style="font-size:0.68rem;color:var(--mu)">${e.categorie||''}${e.ddn?' • Né(e) le '+new Date(e.ddn+'T12:00:00').toLocaleDateString('fr-FR'):''}</div></div><button class="bR" onclick="deleteEnfant('${e.id}')">🗑️</button></div>`).join('')}<button class="bVP" onclick="openAddEnfant()">+ Ajouter un enfant</button>`;
+  el.innerHTML=`<div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.92rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy);margin-bottom:11px;display:flex;align-items:center;gap:8px">👨‍👩‍👧 Mes enfants<span style="flex:1;height:2px;background:var(--bd)"></span></div>${enf.map(e=>`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center"><div onclick="openEnfantPage('${e.id}')" style="cursor:pointer;flex:1"><div style="font-weight:700;font-size:0.88rem;color:var(--navy)">${e.prenom} ${e.nom||''}</div><div style="font-size:0.68rem;color:var(--mu)">${e.categorie||''}${e.ddn?' • Né(e) le '+new Date(e.ddn+'T12:00:00').toLocaleDateString('fr-FR'):''}</div></div><div style="display:flex;gap:5px"><button class="bE" onclick="openEditEnfant('${e.id}','${e.prenom}','${e.nom||''}','${e.ddn||''}','${e.categorie||''}')">✏️</button><button class="bR" onclick="deleteEnfant('${e.id}')">🗑️</button></div></div>`).join('')}<button class="bVP" onclick="openAddEnfant()">+ Ajouter un enfant</button>`;
 }
+
+// ============================================================
+// PLANNING SECTION HEBDOMADAIRE — HORIZONTAL + DATES RÉELLES
+// ============================================================
+let sectionWeekOffset=0;
+let sectionCours=null;
+
+function getMondayOfWeek(offset){
+  const now=new Date();
+  const day=now.getDay();
+  const diff=now.getDate()-day+(day===0?-6:1);
+  const mon=new Date(now);mon.setDate(diff+offset*7);mon.setHours(0,0,0,0);return mon;
+}
+
+async function renderSectionWeek(){
+  const el=document.getElementById('section-week-planning');
+  const label=document.getElementById('section-week-label');
+  if(!el)return;
+  if(!sectionCours){
+    const{data}=await sb.from('cours_section').select('*').order('jour').order('heure_debut');
+    sectionCours=data||[];
+  }
+  const monday=getMondayOfWeek(sectionWeekOffset);
+  const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
+  const fmtShort=d=>d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+  if(label)label.textContent=`Semaine du ${fmtShort(monday)} au ${fmtShort(sunday)}`;
+  const jours=[1,2,3,4,5,6];
+  let html=`<div style="display:flex;gap:7px;min-width:${jours.length*110}px;padding-bottom:4px">`;
+  jours.forEach(j=>{
+    const dayDate=new Date(monday);dayDate.setDate(monday.getDate()+(j-1));
+    const isToday=dayDate.toDateString()===new Date().toDateString();
+    const dayLabel=dayDate.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+    const coursDuJour=sectionCours.filter(c=>c.jour===j);
+    html+=`<div style="flex:0 0 105px;background:var(--sf);border:${isToday?'2px solid var(--gold)':'1px solid var(--bd)'};border-radius:10px;overflow:hidden">
+      <div style="background:${isToday?'var(--gold)':'var(--navy)'};color:${isToday?'#000':'#fff'};padding:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;text-align:center">${dayLabel}</div>
+      <div style="padding:5px">`;
+    if(!coursDuJour.length){
+      html+=`<div style="font-size:0.62rem;color:var(--mu);text-align:center;padding:6px 0">—</div>`;
+    } else {
+      coursDuJour.forEach(c=>{
+        html+=`<div style="background:${c.annule?'rgba(217,79,79,0.06)':'rgba(155,89,182,0.07)'};border-radius:6px;padding:5px 6px;margin-bottom:3px;${c.annule?'opacity:0.6;':''}">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;color:var(--pu)">${c.heure_debut}–${c.heure_fin}</div>
+          <div style="font-size:0.65rem;font-weight:600;color:var(--tx);line-height:1.2">${c.nom||'Cours'}${c.annule?' ❌':''}</div>
+        </div>`;
+      });
+    }
+    html+='</div></div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function changeWeekSection(dir){sectionWeekOffset+=dir;sectionCours=null;renderSectionWeek();}
+
+// ============================================================
+// ENFANTS — MODIFIER + PAGE ENFANT + INSCRIPTION COURS
+// ============================================================
+function openEditEnfant(id,prenom,nom,ddn,categorie){
+  const existing=document.getElementById('m-edit-enfant');if(existing)existing.remove();
+  const m=document.createElement('div');m.className='mo open';m.id='m-edit-enfant';
+  m.innerHTML=`<div class="modal"><h3>Modifier le profil</h3>
+    <div class="tc"><div class="fg"><label>Prénom</label><input type="text" id="ee-prenom" value="${prenom}"></div><div class="fg"><label>Nom</label><input type="text" id="ee-nom" value="${nom}"></div></div>
+    <div class="fg"><label>Date de naissance</label><input type="date" id="ee-ddn" value="${ddn}"></div>
+    <div class="fg"><label>Catégorie</label><select id="ee-cat"><option${categorie==='Baby'?' selected':''}>Baby</option><option${categorie==='Mini-Poussins'?' selected':''}>Mini-Poussins</option><option${categorie==='Poussins'?' selected':''}>Poussins</option><option${categorie==='Benjamins'?' selected':''}>Benjamins</option></select></div>
+    <div style="display:flex;gap:7px"><button class="bP" style="flex:1" onclick="saveEditEnfant('${id}')">Enregistrer</button><button class="bS" onclick="cm('m-edit-enfant')">Annuler</button></div>
+  </div>`;
+  document.body.appendChild(m);
+}
+async function saveEditEnfant(id){
+  await sb.from('enfants').update({prenom:document.getElementById('ee-prenom')?.value.trim(),nom:document.getElementById('ee-nom')?.value.trim()||'',ddn:document.getElementById('ee-ddn')?.value||null,categorie:document.getElementById('ee-cat')?.value}).eq('id',id);
+  cm('m-edit-enfant');showSync();toast('Profil mis à jour !');loadEnfantsSection();
+}
+
+async function openEnfantPage(id){
+  const{data:e}=await sb.from('enfants').select('*').eq('id',id).single();if(!e)return;
+  const{data:cours}=await sb.from('cours').select('*').order('jour').order('heure_debut');
+  const pg=document.getElementById('page-club');if(!pg)return;
+  const inscrits=e.inscrits||[];
+  const DCOLS={'Chartres - La Madeleine':'var(--navy)','Chartres - Dojo Section':'var(--pu)','Mainvilliers':'var(--gr)','Lucé':'var(--rd)','Fontaine':'var(--orange)'};
+  const DN=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.3rem;color:var(--navy)">${e.prenom} ${e.nom||''}</div>
+    <div style="font-size:0.68rem;color:var(--mu)">${e.categorie||''}${e.ddn?' • Né(e) le '+new Date(e.ddn+'T12:00:00').toLocaleDateString('fr-FR'):''}</div></div>
+    <button class="bS" onclick="showClubSection('main')">← Retour</button>
+  </div>
+  <div class="ST">Inscription aux cours</div>
+  ${(cours||[]).map(c=>{
+    const col=DCOLS[c.dojo]||'var(--navy)';
+    const isInscrit=(c.inscrits||[]).includes(id);
+    return `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:9px;padding:10px 12px;margin-bottom:6px;border-left:4px solid ${col};display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.88rem;color:${col}">${DN[c.jour]} ${c.heure_debut}–${c.heure_fin}</div>
+      <div style="font-size:0.82rem;font-weight:600">${c.nom}</div>
+      <div style="font-size:0.65rem;color:var(--mu)">${c.categorie||''} • ${c.dojo||''}</div></div>
+      <button class="${isInscrit?'bR':'bE'}" onclick="toggleEnfantInscription('${id}','${c.id}',${isInscrit})">${isInscrit?'Se désinscrire':'S\'inscrire'}</button>
+    </div>`;
+  }).join('')}`;
+  window.scrollTo(0,0);
+}
+
+async function toggleEnfantInscription(enfantId,coursId,isInscrit){
+  const{data:c}=await sb.from('cours').select('inscrits').eq('id',coursId).single();
+  const inscrits=c?.inscrits||[];
+  if(isInscrit){const idx=inscrits.indexOf(enfantId);if(idx>=0)inscrits.splice(idx,1);}
+  else inscrits.push(enfantId);
+  await sb.from('cours').update({inscrits}).eq('id',coursId);
+  showSync();toast(isInscrit?'Désinscrit !':'Inscrit ! 👊');openEnfantPage(enfantId);
+}
+
+// ============================================================
+// INSCRIPTION — PARENT BLOQUE LES AUTRES + CONFIRMATION MDP + CASES VISUELLES
+// ============================================================
+// toggleRoleCheck déjà défini, on override pour bloquer les autres si parent
+function toggleRoleCheck(role){
+  const chk=document.getElementById('chk-'+role);
+  const fields=document.getElementById('fields-'+role);
+  const item=document.getElementById('rc-'+role);
+  if(role==='parent'&&chk?.checked){
+    // Décocher et désactiver tous les autres rôles
+    ['licencie','competiteur','section','prof','prof_section','coach','bureau'].forEach(r=>{
+      const c=document.getElementById('chk-'+r);
+      const f=document.getElementById('fields-'+r);
+      const i=document.getElementById('rc-'+r);
+      if(c)c.checked=false;
+      if(f)f.style.display='none';
+      if(i){i.classList.remove('checked');i.style.opacity='0.4';i.style.pointerEvents='none';}
+    });
+  } else if(role!=='parent'){
+    const parentChk=document.getElementById('chk-parent');
+    if(parentChk?.checked)return;
+  }
+  if(fields)fields.style.display=chk?.checked?'':'none';
+  if(item)item.classList.toggle('checked',!!chk?.checked);
+  // Réactiver si on décoche parent
+  if(role==='parent'&&!chk?.checked){
+    ['licencie','competiteur','section','prof','prof_section','coach','bureau'].forEach(r=>{
+      const i=document.getElementById('rc-'+r);
+      if(i){i.style.opacity='';i.style.pointerEvents='';}
+    });
+  }
+}
+
+// Confirmation mot de passe gérée directement dans doRegister
+
 sb.auth.onAuthStateChange(async(event,session)=>{
   if(session?.user){await initApp(session.user);}
   else{
