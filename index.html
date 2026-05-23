@@ -874,7 +874,14 @@ async function doRegister(){
     created_at:new Date().toISOString()
   };
   await sb.from('profiles').upsert(profileData);
-  err.textContent='';toast('Compte créé ! Bienvenue 🎉');
+  err.textContent='';
+  document.getElementById('form-register').innerHTML=`
+    <div style="text-align:center;padding:24px 12px">
+      <div style="font-size:3rem;margin-bottom:12px">🎉</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.3rem;color:var(--navy);margin-bottom:8px">Compte créé avec succès !</div>
+      <div style="font-size:0.85rem;color:var(--mu);margin-bottom:20px;line-height:1.5">Bienvenue ${prenom} ! Tu peux maintenant te connecter avec ton email et ton mot de passe.</div>
+      <button class="bP" onclick="switchAuthTab('login')">Se connecter →</button>
+    </div>`;
 }
 
 async function doLogin(){
