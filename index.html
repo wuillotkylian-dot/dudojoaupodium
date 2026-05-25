@@ -196,10 +196,12 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
 .loader{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px;}
 .loader-logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:2.5rem;letter-spacing:0.1em;text-transform:uppercase;color:#fff;}
 .loader-logo span{color:var(--gold);}
-.role-check-item{background:var(--sf2);border:1.5px solid var(--bd);border-radius:10px;padding:10px 12px;transition:all 0.15s;cursor:pointer;}
-.role-check-item.checked{background:rgba(64,65,104,0.08);border-color:var(--navy);box-shadow:0 0 0 2px rgba(64,65,104,0.15);}
-.role-check-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--navy);cursor:pointer;flex-shrink:0;}
-.role-check-item label{cursor:pointer;width:100%;}
+.role-check-item{background:var(--sf2);border:1.5px solid var(--bd);border-radius:10px;padding:10px 12px;transition:all 0.15s;cursor:pointer;user-select:none;}
+.role-check-item.checked{background:rgba(64,65,104,0.08);border-color:var(--navy);box-shadow:0 0 0 2px rgba(64,65,104,0.12);}
+.role-check-item label{cursor:pointer;width:100%;display:flex;align-items:center;gap:10px;}
+.role-check-item input[type=checkbox]{display:none;}
+.role-check-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--bd);background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;transition:all 0.15s;color:transparent;}
+.role-check-item.checked .role-check-box{background:var(--navy);border-color:var(--navy);color:#fff;}
 /* CLUB SPACE */
 .dojo-filter{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
 .dojo-btn{padding:5px 12px;border-radius:20px;border:1.5px solid var(--bd);background:var(--sf);color:var(--mu);font-size:0.68rem;font-weight:600;cursor:pointer;transition:all 0.15s;}
@@ -290,9 +292,10 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
           <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px" id="roles-container">
 
             <div class="role-check-item" id="rc-parent">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;font-weight:600;color:var(--tx);text-transform:none;letter-spacing:0">
-                <input type="checkbox" id="chk-parent" onchange="toggleRoleCheck('parent')" style="width:18px;height:18px;accent-color:var(--navy)">
-                👨‍👩‍👧 Parent de judoka(s) — Baby à Benjamins
+              <label onclick="toggleRoleCheck('parent')">
+                <input type="checkbox" id="chk-parent" onchange="toggleRoleCheck('parent')" style="display:none">
+                <div class="role-check-box" id="box-parent">✓</div>
+                <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">👨‍👩‍👧 Parent de judoka(s) — Baby à Benjamins</span>
               </label>
               <div id="fields-parent" style="display:none;padding:6px 0 0 26px">
                 <div style="font-size:0.72rem;color:var(--mu)">Vous pourrez créer les profils de vos enfants après connexion.</div>
@@ -300,16 +303,18 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
             </div>
 
             <div class="role-check-item" id="rc-licencie">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;font-weight:600;color:var(--tx);text-transform:none;letter-spacing:0">
-                <input type="checkbox" id="chk-licencie" onchange="toggleRoleCheck('licencie')" style="width:18px;height:18px;accent-color:var(--navy)">
-                👥 Licencié(e) au club CMJ28
+              <label onclick="toggleRoleCheck('licencie')">
+                <input type="checkbox" id="chk-licencie" onchange="toggleRoleCheck('licencie')" style="display:none">
+                <div class="role-check-box" id="box-licencie">✓</div>
+                <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">👥 Licencié(e) au club CMJ28</span>
               </label>
             </div>
 
             <div class="role-check-item" id="rc-competiteur">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;font-weight:600;color:var(--tx);text-transform:none;letter-spacing:0">
-                <input type="checkbox" id="chk-competiteur" onchange="toggleRoleCheck('competiteur')" style="width:18px;height:18px;accent-color:var(--navy)">
-                🥋 Judoka compétiteur CMJ28
+              <label onclick="toggleRoleCheck('competiteur')">
+                <input type="checkbox" id="chk-competiteur" onchange="toggleRoleCheck('competiteur')" style="display:none">
+                <div class="role-check-box" id="box-competiteur">✓</div>
+                <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">🥋 Judoka compétiteur CMJ28</span>
               </label>
               <div id="fields-competiteur" style="display:none;padding:8px 0 0 26px">
                 <div style="font-size:0.72rem;color:var(--mu);margin-bottom:6px">Code compétiteur requis</div>
@@ -322,9 +327,10 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
             </div>
 
             <div class="role-check-item" id="rc-section">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;font-weight:600;color:var(--tx);text-transform:none;letter-spacing:0">
-                <input type="checkbox" id="chk-section" onchange="toggleRoleCheck('section')" style="width:18px;height:18px;accent-color:var(--pu)">
-                🏫 Judoka Section Judo (Collège Hélène Boucher)
+              <label onclick="toggleRoleCheck('section')">
+                <input type="checkbox" id="chk-section" onchange="toggleRoleCheck('section')" style="display:none">
+                <div class="role-check-box" id="box-section">✓</div>
+                <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">🏫 Judoka Section Judo (Collège Hélène Boucher)</span>
               </label>
               <div id="fields-section" style="display:none;padding:8px 0 0 26px">
                 <div class="fg" style="margin-bottom:0"><input type="text" id="reg-section-code" placeholder="Code section" autocomplete="off"></div>
@@ -332,9 +338,10 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
             </div>
 
             <div class="role-check-item" id="rc-prof">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;font-weight:600;color:var(--tx);text-transform:none;letter-spacing:0">
-                <input type="checkbox" id="chk-prof" onchange="toggleRoleCheck('prof')" style="width:18px;height:18px;accent-color:var(--gr)">
-                👨‍🏫 Professeur CMJ28
+              <label onclick="toggleRoleCheck('prof')">
+                <input type="checkbox" id="chk-prof" onchange="toggleRoleCheck('prof')" style="display:none">
+                <div class="role-check-box" id="box-prof">✓</div>
+                <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">👨‍🏫 Professeur CMJ28</span>
               </label>
               <div id="fields-prof" style="display:none;padding:8px 0 0 26px">
                 <div class="fg" style="margin-bottom:0"><input type="text" id="reg-prof-code" placeholder="Code professeur CMJ28" autocomplete="off"></div>
@@ -342,9 +349,10 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
             </div>
 
             <div class="role-check-item" id="rc-prof_section">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;font-weight:600;color:var(--tx);text-transform:none;letter-spacing:0">
-                <input type="checkbox" id="chk-prof_section" onchange="toggleRoleCheck('prof_section')" style="width:18px;height:18px;accent-color:var(--pu)">
-                👨‍🏫 Professeur Section Judo
+              <label onclick="toggleRoleCheck('prof_section')">
+                <input type="checkbox" id="chk-prof_section" onchange="toggleRoleCheck('prof_section')" style="display:none">
+                <div class="role-check-box" id="box-prof_section">✓</div>
+                <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">👨‍🏫 Professeur Section Judo</span>
               </label>
               <div id="fields-prof_section" style="display:none;padding:8px 0 0 26px">
                 <div class="fg" style="margin-bottom:0"><input type="text" id="reg-prof-section-code" placeholder="Code prof section" autocomplete="off"></div>
@@ -352,9 +360,10 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
             </div>
 
             <div class="role-check-item" id="rc-coach">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;font-weight:600;color:var(--tx);text-transform:none;letter-spacing:0">
-                <input type="checkbox" id="chk-coach" onchange="toggleRoleCheck('coach')" style="width:18px;height:18px;accent-color:var(--gold)">
-                📊 Coach compétition
+              <label onclick="toggleRoleCheck('coach')">
+                <input type="checkbox" id="chk-coach" onchange="toggleRoleCheck('coach')" style="display:none">
+                <div class="role-check-box" id="box-coach">✓</div>
+                <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">📊 Coach compétition</span>
               </label>
               <div id="fields-coach" style="display:none;padding:8px 0 0 26px">
                 <div class="fg" style="margin-bottom:0"><input type="text" id="reg-coach-code" placeholder="Code coach" autocomplete="off"></div>
@@ -362,9 +371,10 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
             </div>
 
             <div class="role-check-item" id="rc-bureau">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;font-weight:600;color:var(--tx);text-transform:none;letter-spacing:0">
-                <input type="checkbox" id="chk-bureau" onchange="toggleRoleCheck('bureau')" style="width:18px;height:18px;accent-color:var(--gold)">
-                🏛️ Membre du bureau
+              <label onclick="toggleRoleCheck('bureau')">
+                <input type="checkbox" id="chk-bureau" onchange="toggleRoleCheck('bureau')" style="display:none">
+                <div class="role-check-box" id="box-bureau">✓</div>
+                <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">🏛️ Membre du bureau</span>
               </label>
               <div id="fields-bureau" style="display:none;padding:8px 0 0 26px">
                 <div class="fg" style="margin-bottom:0"><input type="text" id="reg-bureau-code" placeholder="Code bureau" autocomplete="off"></div>
@@ -915,14 +925,20 @@ async function tryAutoLogin(){
 }
 
 async function doLogout(){
-  await sb.auth.signOut();
+  // D'abord vider les données de reconnexion pour éviter la reconnexion automatique
   try{localStorage.removeItem('cmj28_e');localStorage.removeItem('cmj28_p');}catch(e){}
+  try{sessionStorage.clear();}catch(e){}
   document.cookie='cmj28_e=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;';
   document.cookie='cmj28_p=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;';
+  // Ensuite déconnecter de Supabase
+  await sb.auth.signOut({scope:'local'});
   CU=null;CP=null;
-  // Fermer tous les modaux ouverts
+  // Fermer tous les modaux
   document.querySelectorAll('.mo.open').forEach(m=>m.classList.remove('open'));
+  // Aller sur la page de connexion
   showAuthPage();
+  // Forcer le rechargement pour nettoyer l'état complètement
+  setTimeout(()=>window.location.reload(),300);
 }
 
 async function doResetPassword(){
@@ -2635,32 +2651,33 @@ async function toggleEnfantInscription(enfantId,coursId,isInscrit){
 // ============================================================
 // INSCRIPTION — PARENT BLOQUE LES AUTRES + CONFIRMATION MDP + CASES VISUELLES
 // ============================================================
-// toggleRoleCheck déjà défini, on override pour bloquer les autres si parent
 function toggleRoleCheck(role){
   const chk=document.getElementById('chk-'+role);
   const fields=document.getElementById('fields-'+role);
   const item=document.getElementById('rc-'+role);
-  if(role==='parent'&&chk?.checked){
-    // Décocher et désactiver tous les autres rôles
+  const box=document.getElementById('box-'+role);
+  // Toggle checked state
+  if(chk)chk.checked=!chk.checked;
+  const isChecked=!!chk?.checked;
+  if(fields)fields.style.display=isChecked?'':'none';
+  if(item)item.classList.toggle('checked',isChecked);
+  if(box){box.textContent=isChecked?'✓':'';box.style.background=isChecked?'var(--navy)':'#fff';box.style.borderColor=isChecked?'var(--navy)':'var(--bd)';box.style.color=isChecked?'#fff':'';}
+  // Si parent coché, désactiver les autres
+  if(role==='parent'&&isChecked){
     ['licencie','competiteur','section','prof','prof_section','coach','bureau'].forEach(r=>{
-      const c=document.getElementById('chk-'+r);
-      const f=document.getElementById('fields-'+r);
-      const i=document.getElementById('rc-'+r);
-      if(c)c.checked=false;
-      if(f)f.style.display='none';
+      const c=document.getElementById('chk-'+r);const f=document.getElementById('fields-'+r);
+      const i=document.getElementById('rc-'+r);const b=document.getElementById('box-'+r);
+      if(c)c.checked=false;if(f)f.style.display='none';
       if(i){i.classList.remove('checked');i.style.opacity='0.4';i.style.pointerEvents='none';}
+      if(b){b.textContent='';b.style.background='#fff';b.style.borderColor='var(--bd)';}
     });
-  } else if(role!=='parent'){
+  } else if(role!=='parent'&&isChecked){
     const parentChk=document.getElementById('chk-parent');
     if(parentChk?.checked)return;
   }
-  if(fields)fields.style.display=chk?.checked?'':'none';
-  if(item)item.classList.toggle('checked',!!chk?.checked);
-  // Réactiver si on décoche parent
-  if(role==='parent'&&!chk?.checked){
+  if(role==='parent'&&!isChecked){
     ['licencie','competiteur','section','prof','prof_section','coach','bureau'].forEach(r=>{
-      const i=document.getElementById('rc-'+r);
-      if(i){i.style.opacity='';i.style.pointerEvents='';}
+      const i=document.getElementById('rc-'+r);if(i){i.style.opacity='';i.style.pointerEvents='';}
     });
   }
 }
