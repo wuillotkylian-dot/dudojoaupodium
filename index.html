@@ -270,8 +270,8 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
 
       <!-- LOGIN -->
       <div id="form-login">
-        <div class="fg"><label>Email</label><input type="email" id="login-email" placeholder="ton@email.com"></div>
-        <div class="fg"><label>Mot de passe</label><input type="password" id="login-password" placeholder="••••••••"></div>
+        <div class="fg"><label>Email</label><input type="email" id="login-email" placeholder="ton@email.com" autocomplete="email" autocorrect="off" autocapitalize="none" spellcheck="false"></div>
+        <div class="fg"><label>Mot de passe</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"></div>
         <button class="bP" onclick="doLogin()">Se connecter</button>
         <div style="text-align:center;margin-top:12px"><button style="background:none;border:none;color:var(--mu);font-size:0.75rem;cursor:pointer;text-decoration:underline" onclick="doResetPassword()">Mot de passe oublié ?</button></div>
         <div id="login-error" style="color:var(--rd);font-size:0.78rem;margin-top:10px;text-align:center"></div>
@@ -891,22 +891,28 @@ async function doRegister(){
 }
 
 async function doLogin(){
-  // Petit délai pour laisser Safari finaliser l'autofill
-  await new Promise(r=>setTimeout(r,100));
+  await new Promise(r=>setTimeout(r,200));
   const emailEl=document.getElementById('login-email');
   const pwEl=document.getElementById('login-password');
   const email=(emailEl?.value||'').trim();
   const password=pwEl?.value||'';
   const errEl=document.getElementById('login-error');
   if(!email||!password){if(errEl)errEl.textContent='Remplis tous les champs.';return;}
-  if(errEl)errEl.textContent='Connexion...';
-  const{error}=await sb.auth.signInWithPassword({email,password});
-  if(error){if(errEl)errEl.textContent='Email ou mot de passe incorrect.';return;}
-  const exp=new Date();exp.setFullYear(exp.getFullYear()+1);
-  document.cookie=`cmj28_e=${btoa(email)};expires=${exp.toUTCString()};path=/;SameSite=Lax`;
-  document.cookie=`cmj28_p=${btoa(password)};expires=${exp.toUTCString()};path=/;SameSite=Lax`;
-  try{localStorage.setItem('cmj28_e',btoa(email));localStorage.setItem('cmj28_p',btoa(password));}catch(e){}
-  if(errEl)errEl.textContent='';
+  if(errEl){errEl.textContent='Connexion en cours...';errEl.style.color='var(--navy)';}
+  try{
+    const{data,error}=await sb.auth.signInWithPassword({email,password});
+    if(error){
+      if(errEl){errEl.textContent='Email ou mot de passe incorrect.';errEl.style.color='var(--rd)';}
+      return;
+    }
+    const exp=new Date();exp.setFullYear(exp.getFullYear()+1);
+    document.cookie=`cmj28_e=${btoa(email)};expires=${exp.toUTCString()};path=/;SameSite=Lax`;
+    document.cookie=`cmj28_p=${btoa(password)};expires=${exp.toUTCString()};path=/;SameSite=Lax`;
+    try{localStorage.setItem('cmj28_e',btoa(email));localStorage.setItem('cmj28_p',btoa(password));}catch(e){}
+    if(errEl){errEl.textContent='';errEl.style.color='var(--rd)';}
+  }catch(e){
+    if(errEl){errEl.textContent='Erreur de connexion. Réessaie.';errEl.style.color='var(--rd)';}
+  }
 }
 
 function getCookie(name){const v=document.cookie.match('(^|;)\\s*'+name+'\\s*=\\s*([^;]+)');return v?v.pop():null;}
