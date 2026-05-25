@@ -891,17 +891,22 @@ async function doRegister(){
 }
 
 async function doLogin(){
-  const email=document.getElementById('login-email').value.trim();
-  const password=document.getElementById('login-password').value;
-  if(!email||!password){document.getElementById('login-error').textContent='Remplis tous les champs.';return;}
+  // Petit délai pour laisser Safari finaliser l'autofill
+  await new Promise(r=>setTimeout(r,100));
+  const emailEl=document.getElementById('login-email');
+  const pwEl=document.getElementById('login-password');
+  const email=(emailEl?.value||'').trim();
+  const password=pwEl?.value||'';
+  const errEl=document.getElementById('login-error');
+  if(!email||!password){if(errEl)errEl.textContent='Remplis tous les champs.';return;}
+  if(errEl)errEl.textContent='Connexion...';
   const{error}=await sb.auth.signInWithPassword({email,password});
-  if(error){document.getElementById('login-error').textContent='Email ou mot de passe incorrect.';return;}
-  // Stocker dans cookie longue durée (365 jours)
+  if(error){if(errEl)errEl.textContent='Email ou mot de passe incorrect.';return;}
   const exp=new Date();exp.setFullYear(exp.getFullYear()+1);
   document.cookie=`cmj28_e=${btoa(email)};expires=${exp.toUTCString()};path=/;SameSite=Lax`;
   document.cookie=`cmj28_p=${btoa(password)};expires=${exp.toUTCString()};path=/;SameSite=Lax`;
   try{localStorage.setItem('cmj28_e',btoa(email));localStorage.setItem('cmj28_p',btoa(password));}catch(e){}
-  document.getElementById('login-error').textContent='';
+  if(errEl)errEl.textContent='';
 }
 
 function getCookie(name){const v=document.cookie.match('(^|;)\\s*'+name+'\\s*=\\s*([^;]+)');return v?v.pop():null;}
