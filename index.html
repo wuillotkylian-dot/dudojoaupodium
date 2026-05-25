@@ -925,20 +925,22 @@ async function tryAutoLogin(){
 }
 
 async function doLogout(){
-  // D'abord vider les données de reconnexion pour éviter la reconnexion automatique
   try{localStorage.removeItem('cmj28_e');localStorage.removeItem('cmj28_p');}catch(e){}
   try{sessionStorage.clear();}catch(e){}
   document.cookie='cmj28_e=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;';
   document.cookie='cmj28_p=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;';
-  // Ensuite déconnecter de Supabase
   await sb.auth.signOut({scope:'local'});
   CU=null;CP=null;
-  // Fermer tous les modaux
   document.querySelectorAll('.mo.open').forEach(m=>m.classList.remove('open'));
-  // Aller sur la page de connexion
+  // Reset les champs de connexion
+  const emailEl=document.getElementById('login-email');
+  const pwEl=document.getElementById('login-password');
+  if(emailEl)emailEl.value='';
+  if(pwEl)pwEl.value='';
+  const errEl=document.getElementById('login-error');
+  if(errEl)errEl.textContent='';
   showAuthPage();
-  // Forcer le rechargement pour nettoyer l'état complètement
-  setTimeout(()=>window.location.reload(),300);
+  switchAuthTab('login');
 }
 
 async function doResetPassword(){
