@@ -292,8 +292,8 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
           <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px" id="roles-container">
 
             <div class="role-check-item" id="rc-parent">
-              <label onclick="toggleRoleCheck('parent')">
-                <input type="checkbox" id="chk-parent" onchange="toggleRoleCheck('parent')" style="display:none">
+              <label>
+                <input type="checkbox" id="chk-parent" onchange="toggleRoleCheck('parent')" style="position:absolute;opacity:0;width:22px;height:22px;cursor:pointer;z-index:1">
                 <div class="role-check-box" id="box-parent">✓</div>
                 <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">👨‍👩‍👧 Parent de judoka(s) — Baby à Benjamins</span>
               </label>
@@ -303,16 +303,16 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
             </div>
 
             <div class="role-check-item" id="rc-licencie">
-              <label onclick="toggleRoleCheck('licencie')">
-                <input type="checkbox" id="chk-licencie" onchange="toggleRoleCheck('licencie')" style="display:none">
+              <label>
+                <input type="checkbox" id="chk-licencie" onchange="toggleRoleCheck('licencie')" style="position:absolute;opacity:0;width:22px;height:22px;cursor:pointer;z-index:1">
                 <div class="role-check-box" id="box-licencie">✓</div>
                 <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">👥 Licencié(e) au club CMJ28</span>
               </label>
             </div>
 
             <div class="role-check-item" id="rc-competiteur">
-              <label onclick="toggleRoleCheck('competiteur')">
-                <input type="checkbox" id="chk-competiteur" onchange="toggleRoleCheck('competiteur')" style="display:none">
+              <label>
+                <input type="checkbox" id="chk-competiteur" onchange="toggleRoleCheck('competiteur')" style="position:absolute;opacity:0;width:22px;height:22px;cursor:pointer;z-index:1">
                 <div class="role-check-box" id="box-competiteur">✓</div>
                 <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">🥋 Judoka compétiteur CMJ28</span>
               </label>
@@ -327,8 +327,8 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
             </div>
 
             <div class="role-check-item" id="rc-section">
-              <label onclick="toggleRoleCheck('section')">
-                <input type="checkbox" id="chk-section" onchange="toggleRoleCheck('section')" style="display:none">
+              <label>
+                <input type="checkbox" id="chk-section" onchange="toggleRoleCheck('section')" style="position:absolute;opacity:0;width:22px;height:22px;cursor:pointer;z-index:1">
                 <div class="role-check-box" id="box-section">✓</div>
                 <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">🏫 Judoka Section Judo (Collège Hélène Boucher)</span>
               </label>
@@ -338,8 +338,8 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
             </div>
 
             <div class="role-check-item" id="rc-prof">
-              <label onclick="toggleRoleCheck('prof')">
-                <input type="checkbox" id="chk-prof" onchange="toggleRoleCheck('prof')" style="display:none">
+              <label>
+                <input type="checkbox" id="chk-prof" onchange="toggleRoleCheck('prof')" style="position:absolute;opacity:0;width:22px;height:22px;cursor:pointer;z-index:1">
                 <div class="role-check-box" id="box-prof">✓</div>
                 <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">👨‍🏫 Professeur CMJ28</span>
               </label>
@@ -349,8 +349,8 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
             </div>
 
             <div class="role-check-item" id="rc-prof_section">
-              <label onclick="toggleRoleCheck('prof_section')">
-                <input type="checkbox" id="chk-prof_section" onchange="toggleRoleCheck('prof_section')" style="display:none">
+              <label>
+                <input type="checkbox" id="chk-prof_section" onchange="toggleRoleCheck('prof_section')" style="position:absolute;opacity:0;width:22px;height:22px;cursor:pointer;z-index:1">
                 <div class="role-check-box" id="box-prof_section">✓</div>
                 <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">👨‍🏫 Professeur Section Judo</span>
               </label>
@@ -360,8 +360,8 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
             </div>
 
             <div class="role-check-item" id="rc-coach">
-              <label onclick="toggleRoleCheck('coach')">
-                <input type="checkbox" id="chk-coach" onchange="toggleRoleCheck('coach')" style="display:none">
+              <label>
+                <input type="checkbox" id="chk-coach" onchange="toggleRoleCheck('coach')" style="position:absolute;opacity:0;width:22px;height:22px;cursor:pointer;z-index:1">
                 <div class="role-check-box" id="box-coach">✓</div>
                 <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">📊 Coach compétition</span>
               </label>
@@ -371,8 +371,8 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
             </div>
 
             <div class="role-check-item" id="rc-bureau">
-              <label onclick="toggleRoleCheck('bureau')">
-                <input type="checkbox" id="chk-bureau" onchange="toggleRoleCheck('bureau')" style="display:none">
+              <label>
+                <input type="checkbox" id="chk-bureau" onchange="toggleRoleCheck('bureau')" style="position:absolute;opacity:0;width:22px;height:22px;cursor:pointer;z-index:1">
                 <div class="role-check-box" id="box-bureau">✓</div>
                 <span style="font-size:0.88rem;font-weight:600;color:var(--tx)">🏛️ Membre du bureau</span>
               </label>
@@ -2685,28 +2685,33 @@ function toggleRoleCheck(role){
   const fields=document.getElementById('fields-'+role);
   const item=document.getElementById('rc-'+role);
   const box=document.getElementById('box-'+role);
-  // Toggle checked state
-  if(chk)chk.checked=!chk.checked;
   const isChecked=!!chk?.checked;
   if(fields)fields.style.display=isChecked?'':'none';
   if(item)item.classList.toggle('checked',isChecked);
-  if(box){box.textContent=isChecked?'✓':'';box.style.background=isChecked?'var(--navy)':'#fff';box.style.borderColor=isChecked?'var(--navy)':'var(--bd)';box.style.color=isChecked?'#fff':'';}
+  if(box){
+    box.innerHTML=isChecked?'✓':'';
+    box.style.background=isChecked?'var(--navy)':'#fff';
+    box.style.borderColor=isChecked?'var(--navy)':'var(--bd)';
+    box.style.color=isChecked?'#fff':'transparent';
+  }
   // Si parent coché, désactiver les autres
   if(role==='parent'&&isChecked){
     ['licencie','competiteur','section','prof','prof_section','coach','bureau'].forEach(r=>{
-      const c=document.getElementById('chk-'+r);const f=document.getElementById('fields-'+r);
-      const i=document.getElementById('rc-'+r);const b=document.getElementById('box-'+r);
-      if(c)c.checked=false;if(f)f.style.display='none';
+      const c=document.getElementById('chk-'+r);
+      const f=document.getElementById('fields-'+r);
+      const i=document.getElementById('rc-'+r);
+      const b=document.getElementById('box-'+r);
+      if(c)c.checked=false;
+      if(f)f.style.display='none';
       if(i){i.classList.remove('checked');i.style.opacity='0.4';i.style.pointerEvents='none';}
-      if(b){b.textContent='';b.style.background='#fff';b.style.borderColor='var(--bd)';}
+      if(b){b.innerHTML='';b.style.background='#fff';b.style.borderColor='var(--bd)';}
     });
-  } else if(role!=='parent'&&isChecked){
-    const parentChk=document.getElementById('chk-parent');
-    if(parentChk?.checked)return;
   }
+  // Si on décoche parent, réactiver les autres
   if(role==='parent'&&!isChecked){
     ['licencie','competiteur','section','prof','prof_section','coach','bureau'].forEach(r=>{
-      const i=document.getElementById('rc-'+r);if(i){i.style.opacity='';i.style.pointerEvents='';}
+      const i=document.getElementById('rc-'+r);
+      if(i){i.style.opacity='';i.style.pointerEvents='';}
     });
   }
 }
