@@ -2687,6 +2687,13 @@ function toggleRoleCheck(role){
 // Confirmation mot de passe gérée directement dans doRegister
 
 sb.auth.onAuthStateChange(async(event,session)=>{
+  if(event==='SIGNED_OUT'||event==='USER_DELETED'){
+    CU=null;CP=null;showAuthPage();return;
+  }
+  if(event==='TOKEN_REFRESHED'||event==='SIGNED_IN'){
+    if(session?.user)await initApp(session.user);
+    return;
+  }
   if(session?.user){await initApp(session.user);}
   else{
     const ok=await tryAutoLogin();
