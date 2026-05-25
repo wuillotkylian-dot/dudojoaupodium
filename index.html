@@ -1765,7 +1765,23 @@ async function updCoachSelect(){
   sel.innerHTML='<option value="">-- Sélectionner --</option>'+(judokas||[]).map(j=>`<option value="${j.id}"${j.id===cur?' selected':''}>${jFN(j)} (${j.cat||''} • ${j.poids||''})</option>`).join('');
 }
 
-function showAuthPage(){document.getElementById('loader').style.display='none';document.getElementById('auth-page').style.display='';document.getElementById('app').style.display='none';}
+function showAuthPage(){
+  document.getElementById('loader').style.display='none';
+  document.getElementById('auth-page').style.display='';
+  document.getElementById('app').style.display='none';
+  // Toujours afficher le formulaire de connexion
+  const formLogin=document.getElementById('form-login');
+  const formRegister=document.getElementById('form-register');
+  const tabLogin=document.getElementById('tab-login');
+  const tabRegister=document.getElementById('tab-register');
+  if(formLogin)formLogin.style.display='';
+  if(formRegister)formRegister.style.display='none';
+  if(tabLogin)tabLogin.classList.add('active');
+  if(tabRegister)tabRegister.classList.remove('active');
+  // Reset erreur
+  const errEl=document.getElementById('login-error');
+  if(errEl)errEl.textContent='';
+}
 function showApp(){document.getElementById('auth-page').style.display='none';document.getElementById('app').style.display='';}
 function hideLoader(){document.getElementById('loader').style.display='none';}
 
