@@ -415,7 +415,7 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
       <div class="dash-grid">
         <div class="dash-tile comp" onclick="showJudokaSection('competition')">
           <div class="dash-tile-icon">🏆</div>
-          <div class="dash-tile-body"><div class="dash-tile-title">Compétition</div><div class="dash-tile-sub">Résultats, combats, performances</div></div>
+          <div class="dash-tile-body"><div class="dash-tile-title">Notes Compétition</div><div class="dash-tile-sub">Résultats, combats, performances</div></div>
           <div class="dash-tile-arrow">›</div>
         </div>
         <div class="dash-tile train" onclick="showJudokaSection('entrainement')">
@@ -443,7 +443,7 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
         <button class="bS" onclick="showStep('step-dash')">← Retour</button>
       </div>
       <div class="sg" id="mstats"></div>
-      <div class="ra"><button class="bG" onclick="startNC()">+ Notes Compétition</button></div>
+      <div class="ra"><button class="bG" onclick="startNC()">+ Nouvelle compétition</button></div>
       <div class="ST">Mes compétitions</div>
       <div id="clj"></div>
     </div>
@@ -1773,7 +1773,9 @@ async function saveProfProfil(){
 
 // updCoachSelect alias
 async function updCoachSelect(){
-  const{data:judokas}=await sb.from('profiles').select('*').or('is_judoka.eq.true,is_competiteur.eq.true').order('nom');
+  const{data:judokas}=await sb.from('profiles').select('*')
+    .or('is_judoka.eq.true,is_competiteur.eq.true,is_section.eq.true')
+    .order('nom');
   const sel=document.getElementById('cjs');if(!sel)return;const cur=sel.value;
   sel.innerHTML='<option value="">-- Sélectionner --</option>'+(judokas||[]).map(j=>`<option value="${j.id}"${j.id===cur?' selected':''}>${jFN(j)} (${j.cat||''} • ${j.poids||''})</option>`).join('');
 }
