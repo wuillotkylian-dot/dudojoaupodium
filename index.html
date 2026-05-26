@@ -1868,12 +1868,18 @@ function loadJudokaView(){
 const CAT_COLORS={'Baby':'#e07b39','Mini-Poussins':'#9b59b6','Poussins':'#2a9d5c','Benjamins':'#2c5282','Minimes':'#404168','Cadets':'#d94f4f','Cadets(tes)':'#d94f4f','Juniors':'#c0392b','Seniors':'#1a1c2e','Adultes':'#404168','Taïso':'#7b7e9e','Tous':'#404168'};
 let calCtx=null;
 
+function fmtEventDate(c){
+  const fmt=d=>{if(!d)return null;const dt=new Date(d+'T12:00:00');return dt.toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});};
+  if(c.date_debut&&c.date_fin&&c.date_debut!==c.date_fin)return `${fmt(c.date_debut)} → ${fmt(c.date_fin)}`;
+  if(c.date_debut)return fmt(c.date_debut);
+  return c.date_texte||c.date||'Date à confirmer';
+}
 async function loadCalendrier(context){
   const elId=context==='section'?'section-cal-view':'club-cal-view';
   const el=document.getElementById(elId);if(!el)return;
-  let query=sb.from('competitions_club').select('*').order('created_at',{ascending:true});
+  let query=sb.from('competitions_club').select('*').order('date_debut',{ascending:true});
   if(context==='section')query=query.eq('source','section');
-  else query=query.eq('source','club');
+  // club = club + section visibles ensemble
   const{data:comps}=await query;
   let filtered=comps||[];
   const userCat=CP.cat||null;
@@ -1889,7 +1895,7 @@ async function loadCalendrier(context){
   const TYPE_EMOJI={competition:'🏆',stage:'🏕️',evenement:'🎉'};
   const compsHtml=filtered.map(c=>{
     const col=CAT_COLORS[c.categorie]||'var(--navy)';
-    const dateStr=c.date_texte||c.date||'Date à confirmer';
+    const dateStr=fmtEventDate(c);
     const emoji=TYPE_EMOJI[c.type_event]||'📅';
     return `<div class="cal-comp-item" data-cat="${c.categorie}" style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:8px;border-left:4px solid ${col}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
@@ -2096,7 +2102,7 @@ function showProfSectionSection(sec){
         </div>
       </div>
       <div class="fg"><label>Nom</label><input type="text" id="cal-nom-prof" placeholder="Ex: Tournoi Section, Stage judo..."></div>
-      <div class="fg"><label>Date(s)</label><input type="text" id="cal-date-prof" placeholder="Ex: 15 mars 2027 ou 15-17 mars 2027"></div>
+      <div class="tc"><div class="fg" style="margin:0"><label>Date début</label><input type="date" id="cal-date-debut-prof"></div><div class="fg" style="margin:0"><label>Date fin <span style="font-weight:400;color:var(--mu)">(optionnel)</span></label><input type="date" id="cal-date-fin-prof"></div></div>
       <div class="fg"><label>Lieu</label><input type="text" id="cal-lieu-prof" placeholder="Ville"></div>
       <div class="fg"><label>Informations</label><textarea id="cal-info-prof" style="min-height:60px" placeholder="Adresse, horaires..."></textarea></div>
       <button class="bP" onclick="saveSectionCalEvent()">💾 Ajouter</button>
@@ -2310,14 +2316,16 @@ async function viewJudokaPerf(userId){
 async function saveSectionCalEvent(){
   const nom=document.getElementById('cal-nom-prof')?.value.trim();if(!nom){toast('Donne un nom !',1);return;}
   const cats=calSelectedCats.length?calSelectedCats:['Minimes','Cadets(tes)'];
-  const date=document.getElementById('cal-date-prof')?.value.trim()||'';
+  const date_debut=document.getElementById('cal-date-debut-prof')?.value||'';
+  const date_fin=document.getElementById('cal-date-fin-prof')?.value||date_debut;
   const lieu=document.getElementById('cal-lieu-prof')?.value||'';
   const info=document.getElementById('cal-info-prof')?.value||'';
   for(const cat of cats){
-    await sb.from('competitions_club').insert({id:crypto.randomUUID(),nom,date_texte:date,lieu,info,categorie:cat,type_event:calProfType,source:'section',created_by:CU.id,created_at:new Date().toISOString()});
+    await sb.from('competitions_club').insert({id:crypto.randomUUID(),nom,date_debut,date_fin,date_texte:'',lieu,info,categorie:cat,type_event:calProfType,source:'section',created_by:CU.id,created_at:new Date().toISOString()});
   }
   if(document.getElementById('cal-nom-prof'))document.getElementById('cal-nom-prof').value='';
-  if(document.getElementById('cal-date-prof'))document.getElementById('cal-date-prof').value='';
+  if(document.getElementById('cal-date-debut-prof'))document.getElementById('cal-date-debut-prof').value='';
+  if(document.getElementById('cal-date-fin-prof'))document.getElementById('cal-date-fin-prof').value='';
   if(document.getElementById('cal-lieu-prof'))document.getElementById('cal-lieu-prof').value='';
   if(document.getElementById('cal-info-prof'))document.getElementById('cal-info-prof').value='';
   calSelectedCats=[];document.querySelectorAll('#cal-cats-sel .chb').forEach(b=>b.classList.remove('sel'));
@@ -2335,7 +2343,7 @@ async function loadSectionCalEditList(){
     return `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:7px;border-left:4px solid ${col}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div style="flex:1"><div style="font-weight:700;font-size:0.88rem;color:var(--navy)">${emoji} ${c.nom}</div>
-        <div style="font-size:0.7rem;color:var(--mu);margin-top:2px">📅 ${c.date_texte||'Date TBD'}${c.lieu?' • 📍'+c.lieu:''}</div>
+        <div style="font-size:0.7rem;color:var(--mu);margin-top:2px">📅 ${fmtEventDate(c)}${c.lieu?' • 📍'+c.lieu:''}</div>
         ${c.info?`<div style="font-size:0.7rem;color:var(--tx);margin-top:3px;background:var(--sf2);border-radius:5px;padding:4px 6px">ℹ️ ${c.info}</div>`:''}
         <div style="margin-top:4px"><span style="font-size:0.6rem;padding:2px 8px;border-radius:8px;font-weight:700;background:${col}22;color:${col}">${c.categorie}</span></div></div>
         <button class="bR" style="margin-left:8px" onclick="deleteProfCalEvent('${c.id}')">🗑️</button>
@@ -2645,9 +2653,13 @@ async function renderSectionWeek(){
   const fmtShort=d=>d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
   if(label)label.textContent=`Semaine du ${fmtShort(monday)} au ${fmtShort(sunday)}`;
   const weekKey=monday.toISOString().split('T')[0];
+  const sundayKey=sunday.toISOString().split('T')[0];
   // Charger les notes de la semaine
   const{data:notes}=await sb.from('planning_saison').select('*').eq('semaine_debut',weekKey).eq('type','note_section');
   const notesByJour={};(notes||[]).forEach(n=>{if(n.jour_semaine!==undefined)notesByJour[n.jour_semaine]=n;});
+  // Charger les événements section qui tombent dans la semaine
+  const{data:evts}=await sb.from('competitions_club').select('*').eq('source','section').lte('date_debut',sundayKey).gte('date_fin',weekKey);
+  const TYPE_EMOJI={competition:'🏆',stage:'🏕️',evenement:'🎉'};
   const canEdit=CP&&(CP.is_prof_section||CP.is_bureau);
   const jours=[1,2,3,4,5,6,0];
   let html=`<div style="display:flex;gap:6px;min-width:${jours.length*100}px;padding-bottom:4px">`;
@@ -2657,17 +2669,30 @@ async function renderSectionWeek(){
     const isToday=dayDate.toDateString()===new Date().toDateString();
     const dayLabel=dayDate.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
     const coursDuJour=sectionCours.filter(c=>c.jour===j);
+    // Événements qui couvrent ce jour
+    const evtsDuJour=(evts||[]).filter(e=>{
+      if(!e.date_debut)return false;
+      const d=dayDate.toISOString().split('T')[0];
+      return d>=e.date_debut&&d<=(e.date_fin||e.date_debut);
+    });
     const note=notesByJour[j];
     html+=`<div style="flex:0 0 95px;background:var(--sf);border:${isToday?'2px solid var(--gold)':'1px solid var(--bd)'};border-radius:10px;overflow:hidden">
       <div style="background:${isToday?'var(--gold)':'var(--navy)'};color:${isToday?'#000':'#fff'};padding:5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.68rem;text-align:center;text-transform:capitalize">${dayLabel}</div>
       <div style="padding:5px">`;
-    if(!coursDuJour.length){
+    if(!coursDuJour.length&&!evtsDuJour.length){
       html+=`<div style="font-size:0.6rem;color:var(--mu);text-align:center;padding:6px 0">—</div>`;
     } else {
       coursDuJour.forEach(c=>{
         html+=`<div style="background:rgba(155,89,182,0.07);border-radius:6px;padding:4px 5px;margin-bottom:3px">
           <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.68rem;color:var(--pu)">${c.heure_debut}–${c.heure_fin}</div>
           <div style="font-size:0.6rem;font-weight:600;color:var(--tx);line-height:1.2">${c.nom||'Cours'}</div>
+        </div>`;
+      });
+      evtsDuJour.forEach(e=>{
+        const emoji=TYPE_EMOJI[e.type_event]||'📅';
+        html+=`<div style="background:rgba(242,186,29,0.12);border-radius:6px;padding:4px 5px;margin-bottom:3px;border-left:2px solid var(--gold)">
+          <div style="font-size:0.6rem;font-weight:700;color:var(--navy);line-height:1.2">${emoji} ${e.nom}</div>
+          ${e.lieu?`<div style="font-size:0.55rem;color:var(--mu)">📍${e.lieu}</div>`:''}
         </div>`;
       });
     }
