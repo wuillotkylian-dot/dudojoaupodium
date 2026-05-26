@@ -1877,7 +1877,7 @@ function fmtEventDate(c){
 async function loadCalendrier(context){
   const elId=context==='section'?'section-cal-view':'club-cal-view';
   const el=document.getElementById(elId);if(!el)return;
-  let query=sb.from('competitions_club').select('*').order('date_debut',{ascending:true});
+  let query=sb.from('competitions_club').select('*').order('created_at',{ascending:true});
   if(context==='section')query=query.eq('source','section');
   // club = club + section visibles ensemble
   const{data:comps}=await query;
@@ -2316,7 +2316,7 @@ async function viewJudokaPerf(userId){
 async function saveSectionCalEvent(){
   const nom=document.getElementById('cal-nom-prof')?.value.trim();if(!nom){toast('Donne un nom !',1);return;}
   const cats=calSelectedCats.length?calSelectedCats:['Minimes','Cadets(tes)'];
-  const date_debut=document.getElementById('cal-date-debut-prof')?.value||'';
+  const date_debut=document.getElementById('cal-date-debut-prof')?.value||null;
   const date_fin=document.getElementById('cal-date-fin-prof')?.value||date_debut;
   const lieu=document.getElementById('cal-lieu-prof')?.value||'';
   const info=document.getElementById('cal-info-prof')?.value||'';
