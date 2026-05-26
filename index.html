@@ -412,6 +412,15 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
         </div>
         <button class="bE" onclick="openEditProfile()">✏️ Profil</button>
       </div>
+      <!-- PLANNING HEBDOMADAIRE PERF -->
+      <div style="margin-bottom:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <button class="bS" style="padding:5px 10px;font-size:0.72rem" onclick="changePerfWeek(-1)">← Préc.</button>
+          <div id="perf-week-label" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;color:var(--navy);text-align:center;flex:1;margin:0 8px"></div>
+          <button class="bS" style="padding:5px 10px;font-size:0.72rem" onclick="changePerfWeek(1)">Suiv. →</button>
+        </div>
+        <div id="perf-week-planning" style="overflow-x:auto;margin-bottom:8px;-webkit-overflow-scrolling:touch"></div>
+      </div>
       <div class="dash-grid">
         <div class="dash-tile comp" onclick="showJudokaSection('competition')">
           <div class="dash-tile-icon">🏆</div>
@@ -1014,6 +1023,8 @@ function loadJudokaView_base(){
   document.getElementById('hname').textContent=jFN(CP);
   document.getElementById('hmeta').textContent=(CP.cat||'')+' • '+(CP.poids||'');
   showStep('step-dash');
+  perfWeekOffset=0;
+  renderPerfWeek();
 }
 
 function renderNavUser(){
@@ -1310,6 +1321,70 @@ function setPTSlotType(t){ptSlotType=t;['judo','prepa','autre'].forEach(x=>docum
 async function savePTSlot(){if(!ptCtx)return;const start=document.getElementById('pt-start').value,end=document.getElementById('pt-end').value,desc=document.getElementById('pt-desc').value.trim();if(!start||!end){toast('Choisis les heures !',1);return;}const t=await getTraining();const pt={...(t.planning_type||{})};if(!pt[ptCtx.di])pt[ptCtx.di]={slots:[]};if(!pt[ptCtx.di].slots)pt[ptCtx.di].slots=[];if(ptCtx.editSid){const i=pt[ptCtx.di].slots.findIndex(s=>s.id===ptCtx.editSid);if(i>=0)pt[ptCtx.di].slots[i]={...pt[ptCtx.di].slots[i],start,end,desc,type:ptSlotType};}else pt[ptCtx.di].slots.push({id:'pts_'+Date.now(),start,end,desc,type:ptSlotType});await upsertTraining({...t,planning_type:pt});cm('m-pt-slot');toast('Créneau enregistré !');loadTrainingSection();}
 async function rmPTSlot(di,sid){const t=await getTraining();const pt={...(t.planning_type||{})};if(!pt[di])return;pt[di].slots=(pt[di].slots||[]).filter(s=>s.id!==sid);await upsertTraining({...t,planning_type:pt});loadTrainingSection();}
 async function savePT(){const t=await getTraining();await upsertTraining(t);toast('Planning type enregistré !');}
+
+let perfWeekOffset=0;
+
+function changePerfWeek(dir){perfWeekOffset+=dir;renderPerfWeek();}
+
+async function renderPerfWeek(){
+  const el=document.getElementById('perf-week-planning');
+  const label=document.getElementById('perf-week-label');
+  if(!el)return;
+  const monday=getMondayOfWeek(perfWeekOffset);
+  const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
+  const fmtShort=d=>d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+  if(label)label.textContent=`Semaine du ${fmtShort(monday)} au ${fmtShort(sunday)}`;
+  const weekKey=monday.toISOString().split('T')[0];
+  const sundayKey=sunday.toISOString().split('T')[0];
+  // Charger planning type du judoka
+  const t=await getTraining();
+  const planningType=t.planning_type||{};
+  // Charger événements club de la semaine
+  const{data:evts}=await sb.from('competitions_club').select('*').eq('source','club').lte('date_debut',sundayKey).gte('date_fin',weekKey);
+  const TYPE_EMOJI={competition:'🏆',stage:'🏕️',evenement:'🎉'};
+  const jours=[1,2,3,4,5,6,0];
+  let html=`<div style="display:flex;gap:6px;min-width:${jours.length*100}px;padding-bottom:4px">`;
+  jours.forEach(j=>{
+    const offset=j===0?6:j-1;
+    const dayDate=new Date(monday);dayDate.setDate(monday.getDate()+offset);
+    const isToday=dayDate.toDateString()===new Date().toDateString();
+    const dayLabel=dayDate.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+    // Créneaux du planning type pour ce jour (index 0=lun...6=dim)
+    const planIdx=j===0?6:j-1;
+    const slots=((planningType[planIdx]||{}).slots||[]).sort((a,b)=>a.start>b.start?1:-1);
+    // Événements club qui couvrent ce jour
+    const evtsDuJour=(evts||[]).filter(e=>{
+      if(!e.date_debut)return false;
+      const d=dayDate.toISOString().split('T')[0];
+      return d>=e.date_debut&&d<=(e.date_fin||e.date_debut);
+    });
+    html+=`<div style="flex:0 0 95px;background:var(--sf);border:${isToday?'2px solid var(--gold)':'1px solid var(--bd)'};border-radius:10px;overflow:hidden">
+      <div style="background:${isToday?'var(--gold)':'var(--navy)'};color:${isToday?'#000':'#fff'};padding:5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.68rem;text-align:center;text-transform:capitalize">${dayLabel}</div>
+      <div style="padding:5px">`;
+    if(!slots.length&&!evtsDuJour.length){
+      html+=`<div style="font-size:0.6rem;color:var(--mu);text-align:center;padding:6px 0">—</div>`;
+    } else {
+      slots.forEach(s=>{
+        const col=s.type==='judo'?'var(--navy)':s.type==='prepa'?'var(--gr)':'var(--mu)';
+        html+=`<div style="background:${s.type==='judo'?'rgba(64,65,104,0.07)':s.type==='prepa'?'rgba(42,157,92,0.07)':'rgba(123,126,158,0.07)'};border-radius:6px;padding:4px 5px;margin-bottom:3px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.68rem;color:${col}">${s.start}–${s.end}</div>
+          <div style="font-size:0.6rem;font-weight:600;color:var(--tx);line-height:1.2">${s.desc||''}</div>
+        </div>`;
+      });
+      evtsDuJour.forEach(e=>{
+        const emoji=TYPE_EMOJI[e.type_event]||'📅';
+        const cats=(e.categories||[e.categorie]).join(', ');
+        html+=`<div style="background:rgba(242,186,29,0.12);border-radius:6px;padding:4px 5px;margin-bottom:3px;border-left:2px solid var(--gold)">
+          <div style="font-size:0.6rem;font-weight:700;color:var(--navy);line-height:1.2">${emoji} ${e.nom}</div>
+          ${e.lieu?`<div style="font-size:0.55rem;color:var(--mu)">📍${e.lieu}</div>`:''}
+        </div>`;
+      });
+    }
+    html+='</div></div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
 
 // ============================================================
 // SYSTÈME D'ATTAQUE - Supabase
@@ -1879,7 +1954,7 @@ async function loadCalendrier(context){
   const el=document.getElementById(elId);if(!el)return;
   let query=sb.from('competitions_club').select('*').order('created_at',{ascending:true});
   if(context==='section')query=query.eq('source','section');
-  // club = club + section visibles ensemble
+  else query=query.eq('source','club');
   const{data:comps}=await query;
   let filtered=comps||[];
   const userCat=CP.cat||null;
@@ -1903,8 +1978,7 @@ async function loadCalendrier(context){
           <div style="font-weight:700;font-size:0.9rem;color:var(--navy)">${emoji} ${c.nom}</div>
           <div style="font-size:0.72rem;color:var(--mu);margin-top:2px">📅 ${dateStr}${c.lieu?' • 📍'+c.lieu:''}</div>
           ${c.info?`<div style="font-size:0.72rem;color:var(--tx);margin-top:4px;background:var(--sf2);border-radius:6px;padding:5px 8px;line-height:1.4">ℹ️ ${c.info}</div>`:''}
-        </div>
-        <span style="font-size:0.62rem;padding:3px 9px;border-radius:10px;font-weight:700;background:${col}22;color:${col};white-space:nowrap;margin-left:8px">${c.categorie}</span>
+          <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px">${(c.categories||[c.categorie]).map(cat=>{const cc=CAT_COLORS[cat]||'var(--navy)';return `<span style="font-size:0.62rem;padding:3px 9px;border-radius:10px;font-weight:700;background:${cc}22;color:${cc}">${cat}</span>`;}).join('')}</div>
       </div>
     </div>`;
   }).join('');
@@ -2320,9 +2394,7 @@ async function saveSectionCalEvent(){
   const date_fin=document.getElementById('cal-date-fin-prof')?.value||date_debut;
   const lieu=document.getElementById('cal-lieu-prof')?.value||'';
   const info=document.getElementById('cal-info-prof')?.value||'';
-  for(const cat of cats){
-    await sb.from('competitions_club').insert({id:crypto.randomUUID(),nom,date_debut,date_fin,date_texte:'',lieu,info,categorie:cat,type_event:calProfType,source:'section',created_by:CU.id,created_at:new Date().toISOString()});
-  }
+  await sb.from('competitions_club').insert({id:crypto.randomUUID(),nom,date_debut,date_fin,date_texte:'',lieu,info,categorie:'Tous',categories:cats,type_event:calProfType,source:'section',created_by:CU.id,created_at:new Date().toISOString()});
   if(document.getElementById('cal-nom-prof'))document.getElementById('cal-nom-prof').value='';
   if(document.getElementById('cal-date-debut-prof'))document.getElementById('cal-date-debut-prof').value='';
   if(document.getElementById('cal-date-fin-prof'))document.getElementById('cal-date-fin-prof').value='';
@@ -2345,7 +2417,7 @@ async function loadSectionCalEditList(){
         <div style="flex:1"><div style="font-weight:700;font-size:0.88rem;color:var(--navy)">${emoji} ${c.nom}</div>
         <div style="font-size:0.7rem;color:var(--mu);margin-top:2px">📅 ${fmtEventDate(c)}${c.lieu?' • 📍'+c.lieu:''}</div>
         ${c.info?`<div style="font-size:0.7rem;color:var(--tx);margin-top:3px;background:var(--sf2);border-radius:5px;padding:4px 6px">ℹ️ ${c.info}</div>`:''}
-        <div style="margin-top:4px"><span style="font-size:0.6rem;padding:2px 8px;border-radius:8px;font-weight:700;background:${col}22;color:${col}">${c.categorie}</span></div></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px">${(c.categories||[c.categorie]).map(cat=>{const cc=CAT_COLORS[cat]||'var(--navy)';return `<span style="font-size:0.6rem;padding:2px 8px;border-radius:8px;font-weight:700;background:${cc}22;color:${cc}">${cat}</span>`;}).join('')}</div></div>
         <button class="bR" style="margin-left:8px" onclick="deleteProfCalEvent('${c.id}')">🗑️</button>
       </div>
     </div>`;
@@ -2690,9 +2762,11 @@ async function renderSectionWeek(){
       });
       evtsDuJour.forEach(e=>{
         const emoji=TYPE_EMOJI[e.type_event]||'📅';
+        const cats=(e.categories||[e.categorie]).join(', ');
         html+=`<div style="background:rgba(242,186,29,0.12);border-radius:6px;padding:4px 5px;margin-bottom:3px;border-left:2px solid var(--gold)">
           <div style="font-size:0.6rem;font-weight:700;color:var(--navy);line-height:1.2">${emoji} ${e.nom}</div>
           ${e.lieu?`<div style="font-size:0.55rem;color:var(--mu)">📍${e.lieu}</div>`:''}
+          <div style="font-size:0.55rem;color:var(--mu)">${cats}</div>
         </div>`;
       });
     }
