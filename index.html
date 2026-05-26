@@ -910,6 +910,7 @@ async function doLogin(){
     document.cookie=`cmj28_p=${btoa(password)};expires=${exp.toUTCString()};path=/;SameSite=Lax`;
     try{localStorage.setItem('cmj28_e',btoa(email));localStorage.setItem('cmj28_p',btoa(password));}catch(e){}
     if(errEl){errEl.textContent='';errEl.style.color='var(--rd)';}
+    if(data?.user) await initApp(data.user);
   }catch(e){
     if(errEl){errEl.textContent='Erreur de connexion. Réessaie.';errEl.style.color='var(--rd)';}
   }
