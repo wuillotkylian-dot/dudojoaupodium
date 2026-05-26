@@ -568,6 +568,9 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
         <div id="ptgrid"></div>
         <button class="bP" style="margin-top:9px" onclick="savePT()">💾 Enregistrer le planning type</button>
       </div>
+      <div class="ST">💪 Préparation physique</div>
+      <div style="font-size:0.72rem;color:var(--mu);margin-bottom:10px">Séances créées par ton coach</div>
+      <div id="prep-phys-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>
     </div>
 
     <!-- SYSTÈME D'ATTAQUE -->
@@ -602,10 +605,12 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
     </div>
     <div id="ce" class="empty"><div class="ei">📊</div><p>Sélectionne un judoka.</p></div>
     <div id="cc" style="display:none">
+        <div id="coach-notes-profs" style="background:rgba(64,65,104,0.04);border:1.5px solid rgba(64,65,104,0.2);border-radius:14px;padding:14px;margin-bottom:16px"></div>
       <div class="coach-sub-tabs">
         <button class="cst active" onclick="showCoachSection('perf',this)">📊 Performances</button>
         <button class="cst" onclick="showCoachSection('msg',this)">💬 Messages</button>
         <button class="cst" onclick="showCoachSection('train',this)">🏋️ Entraînement</button>
+        <button class="cst" onclick="showCoachSection('prepaphys',this)">💪 Prépa Physique</button>
         <button class="cst" onclick="showCoachSection('attack',this)">⚔️ Attaque</button>
       </div>
       <div class="coach-section active" id="cs-perf">
@@ -625,6 +630,10 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
         </div>
       </div>
       <div class="coach-section" id="cs-train"><div id="coach-train-view"></div></div>
+      <div class="coach-section" id="cs-prepaphys">
+        <div style="font-size:0.72rem;color:var(--mu);margin-bottom:12px">Créez des séances de préparation physique visibles par tous les judokas.</div>
+        <div id="coach-prep-phys-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>
+      </div>
       <div class="coach-section" id="cs-attack"><div id="coach-attack-view"></div></div>
     </div>
   </div>
@@ -763,6 +772,68 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
       </div>
     </div>
     <div style="display:flex;gap:7px"><button class="bP" style="flex:1" onclick="savePTSlot()">Valider</button><button class="bS" onclick="cm('m-pt-slot')">Annuler</button></div>
+  </div>
+</div>
+
+<div class="mo" id="m-seance">
+  <div class="modal">
+    <h3>💪 Séance de préparation physique</h3>
+    <div class="fg"><label>Nom</label><input type="text" id="mseance-nom" placeholder="Ex: Circuit cardio, Gainage..."></div>
+    <div class="tc">
+      <div class="fg" style="margin:0"><label>Durée (min)</label><input type="number" id="mseance-duree" placeholder="45"></div>
+      <div class="fg" style="margin:0"><label>Niveau</label><select id="mseance-niveau"><option>Tous niveaux</option><option>Débutant</option><option>Intermédiaire</option><option>Avancé</option></select></div>
+    </div>
+    <div class="fg"><label>Description / Programme</label><textarea id="mseance-desc" style="min-height:120px" placeholder="Ex:&#10;3x10 pompes&#10;3x20 abdos&#10;30s gainage..."></textarea></div>
+    <input type="hidden" id="mseance-id">
+    <div style="display:flex;gap:7px"><button class="bP" style="flex:1" onclick="saveSeance()">💾 Enregistrer</button><button class="bS" onclick="cm('m-seance')">Annuler</button></div>
+  </div>
+</div>
+
+<style>
+@keyframes bannerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+#partenaires-banner{background:var(--sf);border-top:1px solid var(--bd);padding:10px 0;position:sticky;bottom:0;z-index:10}
+</style>
+
+<div id="partenaires-banner" style="display:none"></div>
+
+<div class="toast" id="toast"></div>
+  <div class="modal">
+    <h3 id="mnp-title">📝 Note sur le judoka</h3>
+    <div class="fg"><label>Note</label><textarea id="mnp-texte" placeholder="Observations, points techniques, comportement..." style="min-height:100px"></textarea></div>
+    <input type="hidden" id="mnp-judoka-id">
+    <input type="hidden" id="mnp-note-id">
+    <div style="display:flex;gap:7px"><button class="bP" style="flex:1" onclick="saveNoteProf()">💾 Enregistrer</button><button class="bS" onclick="cm('m-note-prof')">Annuler</button></div>
+  </div>
+</div>
+
+<div class="mo" id="m-partenaire">
+  <div class="modal">
+    <h3 id="mpart-title">🤝 Partenaire</h3>
+    <div class="fg"><label>Logo (URL image)</label><input type="url" id="mpart-logo" placeholder="https://..."></div>
+    <div class="fg"><label>Nom</label><input type="text" id="mpart-nom" placeholder="Nom de l'entreprise"></div>
+    <div class="fg"><label>Email</label><input type="email" id="mpart-email" placeholder="contact@entreprise.fr"></div>
+    <div class="fg"><label>Téléphone</label><input type="tel" id="mpart-tel" placeholder="06 ..."></div>
+    <div class="fg"><label>Description</label><textarea id="mpart-bio" placeholder="Présentation, offre pour les licenciés..." style="min-height:80px"></textarea></div>
+    <input type="hidden" id="mpart-id">
+    <div style="display:flex;gap:7px"><button class="bP" style="flex:1" onclick="savePartenaire()">💾 Enregistrer</button><button class="bS" onclick="cm('m-partenaire')">Annuler</button></div>
+  </div>
+</div>
+
+<div class="mo" id="m-actu">
+  <div class="modal">
+    <h3 id="mactu-title">📰 Actualité</h3>
+    <div class="fg"><label>Titre</label><input type="text" id="mactu-titre" placeholder="Ex: Podium au Championnat Régional..."></div>
+    <div class="fg"><label>Contenu</label><textarea id="mactu-texte" style="min-height:80px" placeholder="Détails..."></textarea></div>
+    <div class="fg"><label>Type</label>
+      <div style="display:flex;gap:6px;margin-top:4px">
+        <button type="button" class="ftab active" id="actu-type-actu" onclick="setActuType('actu')">📰 Actualité</button>
+        <button type="button" class="ftab" id="actu-type-resultat" onclick="setActuType('resultat')">🏅 Résultat</button>
+      </div>
+    </div>
+    <input type="hidden" id="mactu-type-val" value="actu">
+    <input type="hidden" id="mactu-context" value="club">
+    <input type="hidden" id="mactu-id">
+    <div style="display:flex;gap:7px"><button class="bP" style="flex:1" onclick="saveActu()">💾 Publier</button><button class="bS" onclick="cm('m-actu')">Annuler</button></div>
   </div>
 </div>
 
@@ -989,6 +1060,7 @@ async function initApp(user){
   else if(canAccessSection())showMainPage('section',document.getElementById('ntb-section'));
   else showMainPage('club',document.getElementById('ntb-club'));
   loadNotifications();
+  loadPartenairesBanner();
 }
 
 function renderNavTabs(){
@@ -1219,6 +1291,7 @@ async function loadTrainingSection(){
   renderWList(training.weights||[]);
   renderWG(training.sessions||{},training.planning_type||{});
   renderPT(training.planning_type||{});
+  loadPrepPhys();
 }
 
 async function getTraining(){const{data}=await sb.from('training').select('*').eq('user_id',CU.id).maybeSingle();return data||{};}
@@ -1358,8 +1431,12 @@ async function renderPerfWeek(){
       const d=dayDate.toISOString().split('T')[0];
       return d>=e.date_debut&&d<=(e.date_fin||e.date_debut);
     });
+    const dk2=dayDate.toISOString().split('T')[0];
     html+=`<div style="flex:0 0 95px;background:var(--sf);border:${isToday?'2px solid var(--gold)':'1px solid var(--bd)'};border-radius:10px;overflow:hidden">
-      <div style="background:${isToday?'var(--gold)':'var(--navy)'};color:${isToday?'#000':'#fff'};padding:5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.68rem;text-align:center;text-transform:capitalize">${dayLabel}</div>
+      <div style="background:${isToday?'var(--gold)':'var(--navy)'};color:${isToday?'#000':'#fff'};padding:4px 5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.65rem;display:flex;align-items:center;justify-content:space-between;text-transform:capitalize">
+        <span>${dayLabel}</span>
+        <button onclick="openDayPerfModal('${dk2}')" style="background:none;border:none;color:${isToday?'rgba(0,0,0,0.6)':'rgba(255,255,255,0.7)'};cursor:pointer;font-size:0.75rem;padding:0;line-height:1" title="Ajouter une séance">✏️</button>
+      </div>
       <div style="padding:5px">`;
     if(!slots.length&&!evtsDuJour.length){
       html+=`<div style="font-size:0.6rem;color:var(--mu);text-align:center;padding:6px 0">—</div>`;
@@ -1387,8 +1464,270 @@ async function renderPerfWeek(){
 }
 
 // ============================================================
-// SYSTÈME D'ATTAQUE - Supabase
+// NOTES PROFS
 // ============================================================
+function openNoteProf(judokaId,noteId,texte){
+  document.getElementById('mnp-judoka-id').value=judokaId;
+  document.getElementById('mnp-note-id').value=noteId||'';
+  document.getElementById('mnp-texte').value=texte||'';
+  document.getElementById('mnp-title').textContent=noteId?'✏️ Modifier la note':'📝 Nouvelle note';
+  document.getElementById('m-note-prof').classList.add('open');
+}
+async function saveNoteProf(){
+  const judokaId=document.getElementById('mnp-judoka-id').value;
+  const noteId=document.getElementById('mnp-note-id').value;
+  const texte=document.getElementById('mnp-texte').value.trim();
+  if(!texte){toast('Écris une note !',1);return;}
+  const scope=CP.is_prof_section?'section':'club';
+  if(noteId){
+    await sb.from('notes_profs').update({texte,updated_at:new Date().toISOString()}).eq('id',noteId);
+  } else {
+    await sb.from('notes_profs').insert({id:crypto.randomUUID(),judoka_id:judokaId,prof_id:CU.id,auteur:jFN(CP),texte,scope,created_at:new Date().toISOString()});
+  }
+  cm('m-note-prof');toast('Note enregistrée !');loadCV();
+}
+function editNoteProf(noteId,judokaId){
+  sb.from('notes_profs').select('texte').eq('id',noteId).maybeSingle().then(({data})=>{
+    if(data)openNoteProf(judokaId,noteId,data.texte);
+  });
+}
+function deleteNoteProf(noteId){
+  askConfirm('Supprimer cette note ?','🗑️ Supprimer',async()=>{
+    await sb.from('notes_profs').delete().eq('id',noteId);
+    toast('Note supprimée.');loadCV();
+  });
+}
+
+// ============================================================
+// ACTUALITÉS & ANNONCES
+// ============================================================
+let actuType='actu';
+function setActuType(t){
+  actuType=t;
+  ['actu','resultat'].forEach(x=>document.getElementById('actu-type-'+x)?.classList.toggle('active',x===t));
+  document.getElementById('mactu-type-val').value=t;
+}
+function openActuModal(context,id,titre,texte,type){
+  document.getElementById('mactu-context').value=context;
+  document.getElementById('mactu-id').value=id||'';
+  document.getElementById('mactu-titre').value=titre||'';
+  document.getElementById('mactu-texte').value=texte||'';
+  setActuType(type||'actu');
+  document.getElementById('mactu-title').textContent=id?'✏️ Modifier':'📰 Nouvelle actualité';
+  document.getElementById('m-actu').classList.add('open');
+}
+async function saveActu(){
+  const context=document.getElementById('mactu-context').value;
+  const id=document.getElementById('mactu-id').value;
+  const titre=document.getElementById('mactu-titre').value.trim();
+  const texte=document.getElementById('mactu-texte').value.trim();
+  const type=document.getElementById('mactu-type-val').value;
+  if(!titre){toast('Donne un titre !',1);return;}
+  const table=context==='section'?'annonces_section':'annonces';
+  if(id){
+    await sb.from(table).update({titre,texte,type_actu:type}).eq('id',id);
+  } else {
+    await sb.from(table).insert({id:crypto.randomUUID(),titre,texte,type_actu:type,auteur:jFN(CP),prof_id:CU.id,created_at:new Date().toISOString()});
+  }
+  cm('m-actu');toast('Publié !');
+  if(context==='section')loadSectionActualites();else loadClubActualites();
+}
+async function loadClubActualites(){
+  const el=document.getElementById('club-actu-view');if(!el)return;
+  const{data}=await sb.from('annonces').select('*').order('created_at',{ascending:false});
+  renderActualites(el,data||[],'club');
+}
+async function loadSectionActualites(){
+  const el=document.getElementById('section-actu-view');if(!el)return;
+  const{data}=await sb.from('annonces_section').select('*').order('created_at',{ascending:false});
+  renderActualites(el,data||[],'section');
+}
+function renderActualites(el,items,context){
+  const canManage=context==='section'?(CP.is_prof_section||CP.is_bureau):(CP.is_prof||CP.is_coach||CP.is_bureau);
+  const actu=items.filter(a=>a.type_actu!=='annonce');
+  const ann=items.filter(a=>a.type_actu==='annonce');
+  const resultats=actu.filter(a=>a.type_actu==='resultat');
+  const autres=actu.filter(a=>a.type_actu!=='resultat');
+  const col=context==='section'?'var(--pu)':'var(--navy)';
+  const itemHTML=(a,table)=>`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:8px;border-left:4px solid ${a.type_actu==='resultat'?'var(--gold)':a.type_actu==='annonce'?col:'var(--gr)'}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div style="flex:1">
+        <div style="font-size:0.62rem;color:var(--mu);margin-bottom:2px">${new Date(a.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})} · ${a.auteur||'Club'}</div>
+        <div style="font-weight:700;font-size:0.9rem;margin-bottom:4px">${a.titre}</div>
+        <div style="font-size:0.82rem;color:var(--tx);line-height:1.5">${a.texte}</div>
+      </div>
+      ${canManage?`<div style="display:flex;gap:4px;margin-left:8px;flex-shrink:0">
+        <button class="bE" style="padding:3px 7px" onclick="openActuModal('${context}','${a.id}','${a.titre.replace(/'/g,"\\'")}','${(a.texte||'').replace(/'/g,"\\'")}','${a.type_actu||'actu'}')">✏️</button>
+        <button class="bR" style="padding:3px 7px" onclick="deleteActu('${a.id}','${context}')">🗑️</button>
+      </div>`:''}
+    </div>
+  </div>`;
+  let html='';
+  if(canManage)html+=`<div style="display:flex;gap:8px;margin-bottom:14px">
+    <button class="bP" style="flex:1;font-size:0.78rem" onclick="openActuModal('${context}',null,null,null,'actu')">📰 + Actualité</button>
+    <button class="bP" style="flex:1;font-size:0.78rem;background:var(--gold);color:#000" onclick="openActuModal('${context}',null,null,null,'resultat')">🏅 + Résultat</button>
+    <button class="bP" style="flex:1;font-size:0.78rem;background:var(--sf);color:var(--navy);border:1.5px solid var(--bd)" onclick="openActuModal('${context}',null,null,null,'annonce')">📢 + Annonce</button>
+  </div>`;
+  if(resultats.length){html+=`<div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.85rem;text-transform:uppercase;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:8px">🏅 Résultats<span style="flex:1;height:1px;background:rgba(242,186,29,0.3)"></span></div>`;html+=resultats.map(a=>itemHTML(a,'annonces')).join('');}
+  if(autres.length){html+=`<div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.85rem;text-transform:uppercase;color:var(--gr);margin-bottom:8px;margin-top:${resultats.length?12:0}px;display:flex;align-items:center;gap:8px">📰 Actualités<span style="flex:1;height:1px;background:rgba(42,157,92,0.2)"></span></div>`;html+=autres.map(a=>itemHTML(a,'annonces')).join('');}
+  if(ann.length){html+=`<div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.85rem;text-transform:uppercase;color:${col};margin-bottom:8px;margin-top:${(resultats.length||autres.length)?12:0}px;display:flex;align-items:center;gap:8px">📢 Annonces<span style="flex:1;height:1px;background:var(--bd)"></span></div>`;html+=ann.map(a=>itemHTML(a,'annonces')).join('');}
+  if(!items.length)html+=`<div style="text-align:center;padding:24px;color:var(--mu)"><div style="font-size:1.8rem">📰</div><p style="font-size:0.8rem;margin-top:8px">Aucune publication pour le moment.</p></div>`;
+  el.innerHTML=html;
+}
+function deleteActu(id,context){
+  askConfirm('Supprimer ?','🗑️',async()=>{
+    const table=context==='section'?'annonces_section':'annonces';
+    await sb.from(table).delete().eq('id',id);
+    toast('Supprimé.');
+    if(context==='section')loadSectionActualites();else loadClubActualites();
+  });
+}
+
+// ============================================================
+// PARTENAIRES
+// ============================================================
+async function loadPartenaires(elId){
+  const el=document.getElementById(elId);if(!el)return;
+  const{data}=await sb.from('partenaires').select('*').order('created_at',{ascending:true});
+  renderPartenaires(el,data||[],elId==='bureau-partenaires-view');
+}
+function renderPartenaires(el,items,canEdit){
+  if(!items.length&&!canEdit){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--mu)">Aucun partenaire.</div>';return;}
+  let html='';
+  if(canEdit)html+=`<button class="bP" style="width:100%;margin-bottom:14px" onclick="openPartenaire()">🤝 + Ajouter un partenaire</button>`;
+  html+=items.map(p=>`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start">
+    ${p.logo?`<img src="${p.logo}" alt="${p.nom}" style="width:52px;height:52px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--bd);flex-shrink:0">`:'<div style="width:52px;height:52px;border-radius:8px;background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🤝</div>'}
+    <div style="flex:1;min-width:0">
+      <div style="font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:1rem;color:var(--navy)">${p.nom}</div>
+      ${p.bio?`<div style="font-size:0.78rem;color:var(--tx);margin-top:3px;line-height:1.4">${p.bio}</div>`:''}
+      <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap">
+        ${p.email?`<a href="mailto:${p.email}" style="font-size:0.72rem;color:var(--navy);text-decoration:none">📧 ${p.email}</a>`:''}
+        ${p.tel?`<a href="tel:${p.tel}" style="font-size:0.72rem;color:var(--navy);text-decoration:none">📞 ${p.tel}</a>`:''}
+      </div>
+    </div>
+    ${canEdit?`<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+      <button class="bE" style="padding:3px 7px" onclick="openPartenaire('${p.id}','${(p.nom||'').replace(/'/g,"\\'")}','${p.logo||''}','${p.email||''}','${p.tel||''}','${(p.bio||'').replace(/'/g,"\\'")}')">✏️</button>
+      <button class="bR" style="padding:3px 7px" onclick="deletePartenaire('${p.id}')">🗑️</button>
+    </div>`:''}
+  </div>`).join('');
+  el.innerHTML=html;
+}
+function openPartenaire(id,nom,logo,email,tel,bio){
+  document.getElementById('mpart-id').value=id||'';
+  document.getElementById('mpart-nom').value=nom||'';
+  document.getElementById('mpart-logo').value=logo||'';
+  document.getElementById('mpart-email').value=email||'';
+  document.getElementById('mpart-tel').value=tel||'';
+  document.getElementById('mpart-bio').value=bio||'';
+  document.getElementById('mpart-title').textContent=id?'✏️ Modifier partenaire':'🤝 Nouveau partenaire';
+  document.getElementById('m-partenaire').classList.add('open');
+}
+async function savePartenaire(){
+  const id=document.getElementById('mpart-id').value;
+  const nom=document.getElementById('mpart-nom').value.trim();
+  if(!nom){toast('Donne un nom !',1);return;}
+  const data={nom,logo:document.getElementById('mpart-logo').value.trim(),email:document.getElementById('mpart-email').value.trim(),tel:document.getElementById('mpart-tel').value.trim(),bio:document.getElementById('mpart-bio').value.trim()};
+  if(id){await sb.from('partenaires').update(data).eq('id',id);}
+  else{await sb.from('partenaires').insert({id:crypto.randomUUID(),...data,created_at:new Date().toISOString()});}
+  cm('m-partenaire');toast('Partenaire enregistré !');
+  loadPartenaires('club-partenaires-view');
+  loadPartenaires('bureau-partenaires-view');
+  loadPartenairesBanner();
+}
+function deletePartenaire(id){askConfirm('Supprimer ce partenaire ?','🗑️',async()=>{await sb.from('partenaires').delete().eq('id',id);toast('Supprimé.');loadPartenaires('bureau-partenaires-view');loadPartenairesBanner();});}
+async function loadPartenairesBanner(){
+  const el=document.getElementById('partenaires-banner');if(!el)return;
+  const{data}=await sb.from('partenaires').select('id,nom,logo').order('created_at');
+  if(!data||!data.length){el.style.display='none';return;}
+  el.style.display='';
+  const logos=data.filter(p=>p.logo).map(p=>`<div style="display:inline-flex;align-items:center;gap:8px;margin:0 24px;flex-shrink:0"><img src="${p.logo}" alt="${p.nom}" style="height:36px;max-width:100px;object-fit:contain;filter:grayscale(20%);opacity:0.85"><span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;color:var(--navy);white-space:nowrap">${p.nom}</span></div>`).join('');
+  const nologos=data.filter(p=>!p.logo).map(p=>`<div style="display:inline-flex;align-items:center;margin:0 24px;flex-shrink:0"><span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;color:var(--navy);white-space:nowrap">🤝 ${p.nom}</span></div>`).join('');
+  const content=logos+nologos;
+  el.innerHTML=`<div style="overflow:hidden;white-space:nowrap;position:relative">
+    <div class="banner-scroll" style="display:inline-flex;animation:bannerScroll 20s linear infinite">${content}${content}</div>
+  </div>`;
+}
+
+// ============================================================
+// PRÉPARATION PHYSIQUE
+// ============================================================
+async function loadPrepPhys(){
+  const el=document.getElementById('prep-phys-view');if(!el)return;
+  const{data}=await sb.from('seances_prep').select('*').order('created_at',{ascending:false});
+  renderPrepPhys(el,data||[]);
+}
+function renderPrepPhys(el,seances){
+  const html=seances.length?seances.map(s=>`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px;border-left:4px solid var(--gr)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div style="flex:1">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;color:var(--navy)">${s.nom}</div>
+        <div style="font-size:0.72rem;color:var(--mu);margin-top:2px">${s.duree?s.duree+' min · ':''} ${s.niveau||''}</div>
+        ${s.description?`<div style="font-size:0.8rem;color:var(--tx);margin-top:6px;line-height:1.4;white-space:pre-line">${s.description}</div>`:''}
+      </div>
+    </div>
+  </div>`).join(''):'<div style="text-align:center;padding:24px;color:var(--mu)"><div style="font-size:1.8rem">💪</div><p style="font-size:0.8rem;margin-top:8px">Aucune séance disponible.</p></div>';
+  el.innerHTML=html;
+}
+async function loadPrepPhysCoach(){
+  const el=document.getElementById('coach-prep-phys-view');if(!el)return;
+  const{data}=await sb.from('seances_prep').select('*').order('created_at',{ascending:false});
+  renderPrepPhysCoach(el,data||[]);
+}
+function renderPrepPhysCoach(el,seances){
+  let html=`<button class="bP" style="width:100%;margin-bottom:14px" onclick="openSeanceModal()">💪 + Nouvelle séance</button>`;
+  html+=seances.map(s=>`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px;border-left:4px solid var(--gr)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div style="flex:1">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;color:var(--navy)">${s.nom}</div>
+        <div style="font-size:0.72rem;color:var(--mu);margin-top:2px">${s.duree?s.duree+' min · ':''} ${s.niveau||''}</div>
+        ${s.description?`<div style="font-size:0.8rem;color:var(--tx);margin-top:6px;line-height:1.4;white-space:pre-line">${s.description}</div>`:''}
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px">
+        <button class="bE" style="padding:3px 7px" onclick="openSeanceModal('${s.id}','${(s.nom||'').replace(/'/g,"\\'")}','${s.duree||''}','${s.niveau||''}','${(s.description||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}')">✏️</button>
+        <button class="bR" style="padding:3px 7px" onclick="deleteSeance('${s.id}')">🗑️</button>
+      </div>
+    </div>
+  </div>`).join('');
+  el.innerHTML=html;
+}
+function openSeanceModal(id,nom,duree,niveau,desc){
+  document.getElementById('mseance-id').value=id||'';
+  document.getElementById('mseance-nom').value=nom||'';
+  document.getElementById('mseance-duree').value=duree||'';
+  document.getElementById('mseance-niveau').value=niveau||'Tous niveaux';
+  document.getElementById('mseance-desc').value=(desc||'').replace(/\\n/g,'\n');
+  document.getElementById('m-seance').classList.add('open');
+}
+async function saveSeance(){
+  const id=document.getElementById('mseance-id').value;
+  const nom=document.getElementById('mseance-nom').value.trim();
+  if(!nom){toast('Donne un nom !',1);return;}
+  const data={nom,duree:document.getElementById('mseance-duree').value,niveau:document.getElementById('mseance-niveau').value,description:document.getElementById('mseance-desc').value.trim()};
+  if(id){await sb.from('seances_prep').update(data).eq('id',id);}
+  else{await sb.from('seances_prep').insert({id:crypto.randomUUID(),...data,created_by:CU.id,created_at:new Date().toISOString()});}
+  cm('m-seance');toast('Séance enregistrée !');loadPrepPhysCoach();
+}
+function deleteSeance(id){askConfirm('Supprimer cette séance ?','🗑️',async()=>{await sb.from('seances_prep').delete().eq('id',id);toast('Supprimée.');loadPrepPhysCoach();});}
+
+// ============================================================
+// NOTES PROFS (fin)
+// ============================================================
+function openDayPerfModal(dateStr){
+  const d=new Date(dateStr+'T12:00:00');
+  const label=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  getTraining().then(t=>{
+    const sessions=t.sessions||{};
+    const planningType=t.planning_type||{};
+    const dow=d.getDay();
+    const planIdx=dow===0?6:dow-1;
+    const existing=sessions[dateStr]||(planningType[planIdx]?.slots?[...planningType[planIdx].slots]:[]);
+    daySlots=JSON.parse(JSON.stringify(existing));
+    dKey={dk:dateStr,sessions,planningType};
+    document.getElementById('mdayt').textContent=label;
+    slotType='judo';editingSlotId=null;resetSlotForm();renderDaySlots();
+    document.getElementById('m-day').classList.add('open');
+  });
+}
 async function loadAttackData(){
   const{data}=await sb.from('attaque').select('*').eq('user_id',CU.id).maybeSingle();
   const att=data||{droitier:{},gaucher:{},sol:''};
@@ -1440,6 +1779,33 @@ async function loadCV(){
   document.getElementById('cc').style.display=id?'':'none';
   if(!id)return;
   showCoachSection('perf',document.querySelector('.cst'));
+  // NOTES PROFS EN PREMIER PLAN
+  const scope=CP.is_prof_section?'section':'club';
+  const{data:notesProfs}=await sb.from('notes_profs').select('*').eq('judoka_id',id).eq('scope',scope).order('created_at',{ascending:false});
+  const npEl=document.getElementById('coach-notes-profs');
+  if(npEl){
+    const canAddNote=CP.is_prof||CP.is_coach||CP.is_prof_section||CP.is_bureau;
+    npEl.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;text-transform:uppercase;color:var(--navy)">📝 Notes profs</div>
+      ${canAddNote?`<button class="bP" style="font-size:0.72rem;padding:5px 12px" onclick="openNoteProf('${id}')">+ Ajouter</button>`:''}
+    </div>
+    ${(notesProfs||[]).length?notesProfs.map(n=>{
+      const isAuthor=n.prof_id===CU.id;
+      const d=new Date(n.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
+      return `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:8px;border-left:4px solid var(--navy)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="flex:1">
+            <div style="font-size:0.65rem;font-weight:700;color:var(--navy);text-transform:uppercase;margin-bottom:3px">${n.auteur||'Prof'} <span style="color:var(--mu);font-weight:400">· ${d}</span></div>
+            <div style="font-size:0.85rem;color:var(--tx);line-height:1.5">${n.texte}</div>
+          </div>
+          ${isAuthor?`<div style="display:flex;gap:4px;margin-left:8px;flex-shrink:0">
+            <button class="bE" style="padding:3px 7px" onclick="editNoteProf('${n.id}','${id}')">✏️</button>
+            <button class="bR" style="padding:3px 7px" onclick="deleteNoteProf('${n.id}')">🗑️</button>
+          </div>`:''}
+        </div>
+      </div>`;
+    }).join(''):`<div style="color:var(--mu);font-size:0.8rem;text-align:center;padding:14px">Aucune note pour ce judoka.</div>`}`;
+  }
   const{data:comps}=await sb.from('competitions').select('*').eq('user_id',id).order('date',{ascending:false});
   let tw=0,tl=0;const palma={or:0,argent:0,bronze:0,'5e':0,'7e':0,poules:0,nc:0};
   const tW={},tL={};let wD=0,wS=0,lD=0,lS=0;
@@ -1500,6 +1866,7 @@ function showCoachSection(id,btn){
   if(id==='msg'){const uid=document.getElementById('cjs').value;if(uid)sb.from('training').select('messages').eq('user_id',uid).maybeSingle().then(({data})=>renderCoachMsgList(data?.messages||[],uid));}
   if(id==='train')renderCoachTrainView();
   if(id==='attack')renderCoachAttackView();
+  if(id==='prepaphys')loadPrepPhysCoach();
 }
 
 async function renderCoachTrainView(){
@@ -1589,6 +1956,11 @@ function showClubSection(sec){
       <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.4rem;color:var(--navy)">Espace Club</div>
       <div style="font-size:0.65rem;color:var(--mu);letter-spacing:0.1em;text-transform:uppercase">Chartres Métropole Judo 28</div>
     </div>
+    <!-- ACTUALITÉS & ANNONCES EN HAUT -->
+    <div style="background:linear-gradient(135deg,rgba(64,65,104,0.06) 0%,rgba(242,186,29,0.06) 100%);border:1.5px solid rgba(64,65,104,0.15);border-radius:16px;padding:14px;margin-bottom:12px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;text-transform:uppercase;color:var(--navy);margin-bottom:10px">📰 Actualités & Annonces</div>
+      <div id="club-actu-view"><div style="text-align:center;padding:16px;color:var(--mu)">Chargement...</div></div>
+    </div>
     <div style="display:grid;grid-template-columns:1fr;gap:12px">
       <div style="background:var(--sf);border:2px solid rgba(64,65,104,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showClubSection('planning')">
         <div style="font-size:2rem;width:48px;text-align:center">📅</div>
@@ -1600,17 +1972,19 @@ function showClubSection(sec){
         <div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">L'équipe pédagogique</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Nos professeurs et coachs</div></div>
         <div style="font-size:1.2rem;color:var(--bd)">›</div>
       </div>
-      <div style="background:var(--sf);border:2px solid rgba(242,186,29,0.4);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showClubSection('annonces')">
-        <div style="font-size:2rem;width:48px;text-align:center">📢</div>
-        <div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Annonces</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Infos et communications du club</div></div>
-        <div style="font-size:1.2rem;color:var(--bd)">›</div>
-      </div>
       <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showClubSection('calendrier')">
         <div style="font-size:2rem;width:48px;text-align:center">🏆</div>
         <div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions, stages & événements</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Toutes les compétitions par catégorie</div></div>
         <div style="font-size:1.2rem;color:var(--bd)">›</div>
       </div>
+      <!-- PARTENAIRES EN BAS -->
+      <div style="background:var(--sf);border:2px solid rgba(242,186,29,0.3);border-radius:16px;padding:14px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;text-transform:uppercase;color:var(--navy);margin-bottom:10px">🤝 Nos partenaires</div>
+        <div id="club-partenaires-view"><div style="text-align:center;padding:12px;color:var(--mu)">Chargement...</div></div>
+      </div>
     </div>${CP.is_parent?'<div id="enfants-section" style="margin-top:16px"></div>':''}`;
+    loadClubActualites();
+    loadPartenaires('club-partenaires-view');
     if(CP.is_parent)loadEnfantsSection();
   }
   else if(sec==='planning'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.92rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy)">📅 Planning des cours</div><button class="bS" onclick="showClubSection('main')">← Retour</button></div><div class="dojo-filter"><button class="dojo-btn active" onclick="filterDojo('tous',this)">Tous</button><button class="dojo-btn" onclick="filterDojo('Chartres - La Madeleine',this)">La Madeleine</button><button class="dojo-btn" onclick="filterDojo('Chartres - Dojo Section',this)">Section</button><button class="dojo-btn" onclick="filterDojo('Mainvilliers',this)">Mainvilliers</button><button class="dojo-btn" onclick="filterDojo('Lucé',this)">Lucé</button><button class="dojo-btn" onclick="filterDojo('Fontaine',this)">Fontaine</button></div><div id="planning-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadClubPlanning('tous');}
@@ -2028,6 +2402,11 @@ function showSectionSection(sec){
       <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.4rem;color:var(--navy)">Section Judo</div>
       <div style="font-size:0.65rem;color:var(--mu);letter-spacing:0.1em;text-transform:uppercase">Collège Hélène Boucher — Chartres</div>
     </div>
+    <!-- ACTUALITÉS & ANNONCES EN HAUT -->
+    <div style="background:linear-gradient(135deg,rgba(155,89,182,0.06) 0%,rgba(242,186,29,0.06) 100%);border:1.5px solid rgba(155,89,182,0.2);border-radius:16px;padding:14px;margin-bottom:12px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;text-transform:uppercase;color:var(--navy);margin-bottom:10px">📰 Actualités & Annonces</div>
+      <div id="section-actu-view"><div style="text-align:center;padding:16px;color:var(--mu)">Chargement...</div></div>
+    </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <button class="bS" onclick="changeWeekSection(-1)">← Préc.</button>
       <div id="section-week-label" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;color:var(--navy);text-align:center;flex:1;margin:0 8px"></div>
@@ -2036,9 +2415,9 @@ function showSectionSection(sec){
     <div id="section-week-planning" style="overflow-x:auto;margin-bottom:16px;-webkit-overflow-scrolling:touch"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div style="background:var(--sf);border:2px solid rgba(42,157,92,0.25);border-radius:14px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="showSectionSection('equipe')"><div style="font-size:1.6rem">👨‍🏫</div><div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.95rem;text-transform:uppercase;color:var(--navy)">Équipe</div><div style="font-size:0.68rem;color:var(--mu)">Les intervenants</div></div></div>
-      <div style="background:var(--sf);border:2px solid rgba(242,186,29,0.4);border-radius:14px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="showSectionSection('annonces')"><div style="font-size:1.6rem">📢</div><div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.95rem;text-transform:uppercase;color:var(--navy)">Annonces</div><div style="font-size:0.68rem;color:var(--mu)">Communications</div></div></div>
-      <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:14px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;grid-column:span 2" onclick="showSectionSection('calendrier')"><div style="font-size:1.6rem">📅</div><div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.95rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions, stages & événements</div></div></div>
+      <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:14px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="showSectionSection('calendrier')"><div style="font-size:1.6rem">📅</div><div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.95rem;text-transform:uppercase;color:var(--navy)">Calendrier</div><div style="font-size:0.68rem;color:var(--mu)">Compétitions & stages</div></div></div>
     </div>`;
+    loadSectionActualites();
     sectionWeekOffset=0;renderSectionWeek();
   }
   else if(sec==='planning'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📅 Planning Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div style="font-size:0.78rem;color:var(--mu);margin-bottom:12px">📍 10 rue de Châteaudun, Chartres</div><div id="section-planning-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionPlanning();}
@@ -2079,14 +2458,17 @@ function renderBureauPage(){
   const pg=document.getElementById('page-bureau');if(!pg)return;
   pg.innerHTML=`<div style="margin-bottom:16px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.4rem;color:var(--navy)">Espace Bureau</div><div style="font-size:0.65rem;color:var(--mu);letter-spacing:0.1em;text-transform:uppercase">CMJ28</div></div>
   <div style="display:grid;grid-template-columns:1fr;gap:12px">
-    <div style="background:var(--sf);border:2px solid rgba(242,186,29,0.4);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showBureauSection('annonces')"><div style="font-size:2rem;width:48px;text-align:center">📢</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Publier une annonce</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Vers tous les licenciés</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
+    <div style="background:var(--sf);border:2px solid rgba(42,157,92,0.3);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showBureauSection('actualites')"><div style="font-size:2rem;width:48px;text-align:center">📰</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Actualités & Annonces</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Résultats, actualités, annonces club</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
     <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showBureauSection('calendrier')"><div style="font-size:2rem;width:48px;text-align:center">🏆</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Calendrier compétitions, stages & événements</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Gérer le calendrier du club</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
+    <div style="background:var(--sf);border:2px solid rgba(242,186,29,0.3);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showBureauSection('partenaires')"><div style="font-size:2rem;width:48px;text-align:center">🤝</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Partenaires</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Gérer les fiches partenaires</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
     <div style="background:var(--sf);border:2px solid rgba(64,65,104,0.15);border-radius:16px;padding:20px 16px;cursor:pointer;display:flex;align-items:center;gap:14px" onclick="showBureauFiche()"><div style="font-size:2rem;width:48px;text-align:center">👤</div><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;text-transform:uppercase;color:var(--navy)">Ma fiche bureau</div><div style="font-size:0.72rem;color:var(--mu);margin-top:3px">Titre, contact, photo</div></div><div style="font-size:1.2rem;color:var(--bd)">›</div></div>
   </div>`;
 }
 function showBureauSection(sec){
   const pg=document.getElementById('page-bureau');if(!pg)return;
-  if(sec==='annonces'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📢 Publier une annonce</div><button class="bS" onclick="renderBureauPage()">← Retour</button></div><div class="card"><div class="fg"><label>Titre</label><input type="text" id="bureau-ann-titre" placeholder="Ex: Assemblée Générale..."></div><div class="fg"><label>Message</label><textarea id="bureau-ann-texte" style="min-height:100px"></textarea></div><div class="fg"><label>Destinataires</label><select id="bureau-ann-dest"><option value="tous">Tous les licenciés</option><option value="Baby">Baby</option><option value="Mini-Poussins">Mini-Poussins</option><option value="Poussins">Poussins</option><option value="Benjamins">Benjamins</option><option value="Minimes">Minimes</option><option value="Cadets">Cadets</option><option value="Adultes">Adultes</option><option value="Taïso">Taïso</option></select></div><button class="bP" onclick="sendBureauAnnonce()">📨 Publier</button></div><div class="ST">Annonces publiées</div><div id="bureau-ann-list"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadBureauAnnonces();}
+  if(sec==='actualites'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📰 Actualités & Annonces</div><button class="bS" onclick="renderBureauPage()">← Retour</button></div><div id="club-actu-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadClubActualites();}
+  else if(sec==='partenaires'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">🤝 Partenaires</div><button class="bS" onclick="renderBureauPage()">← Retour</button></div><div id="bureau-partenaires-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadPartenaires('bureau-partenaires-view');}
+  else if(sec==='annonces'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📢 Publier une annonce</div><button class="bS" onclick="renderBureauPage()">← Retour</button></div><div class="card"><div class="fg"><label>Titre</label><input type="text" id="bureau-ann-titre" placeholder="Ex: Assemblée Générale..."></div><div class="fg"><label>Message</label><textarea id="bureau-ann-texte" style="min-height:100px"></textarea></div><div class="fg"><label>Destinataires</label><select id="bureau-ann-dest"><option value="tous">Tous les licenciés</option><option value="Baby">Baby</option><option value="Mini-Poussins">Mini-Poussins</option><option value="Poussins">Poussins</option><option value="Benjamins">Benjamins</option><option value="Minimes">Minimes</option><option value="Cadets">Cadets</option><option value="Adultes">Adultes</option><option value="Taïso">Taïso</option></select></div><button class="bP" onclick="sendBureauAnnonce()">📨 Publier</button></div><div class="ST">Annonces publiées</div><div id="bureau-ann-list"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadBureauAnnonces();}
   else if(sec==='calendrier'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📅 Calendrier compétitions, stages & événements</div><button class="bS" onclick="renderBureauPage()">← Retour</button></div><div id="club-cal-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadCalendrier('club');}
   else if(sec==='stats'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📊 Statistiques Club</div><button class="bS" onclick="renderBureauPage()">← Retour</button></div><div id="stats-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadClubStats();}
   window.scrollTo(0,0);
