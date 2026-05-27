@@ -1450,7 +1450,7 @@ async function renderPerfWeek(){
       const d=dayDate.toISOString().split('T')[0];
       return d>=e.date_debut&&d<=(e.date_fin||e.date_debut);
     });
-    const dk2=dayDate.toISOString().split('T')[0];
+    const dk2=dateKey; // même date locale que dateKey, pas toISOString() qui décale en UTC
     html+=`<div style="flex:0 0 95px;background:var(--sf);border:${isToday?'2px solid var(--gold)':'1px solid var(--bd)'};border-radius:10px;overflow:hidden">
       <div style="background:${isToday?'var(--gold)':'var(--navy)'};color:${isToday?'#000':'#fff'};padding:4px 5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.65rem;display:flex;align-items:center;justify-content:space-between;text-transform:capitalize">
         <span>${dayLabel}</span>
@@ -2463,6 +2463,7 @@ function showSectionSection(sec){
       <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:14px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="showSectionSection('calendrier')"><div style="font-size:1.6rem">📅</div><div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.95rem;text-transform:uppercase;color:var(--navy)">Calendrier</div><div style="font-size:0.68rem;color:var(--mu)">Compétitions & stages</div></div></div>
     </div>`;
     loadSectionActualites(true);
+    sectionWeekOffset=0;renderSectionWeek();
   }
   else if(sec==='planning'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📅 Planning Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div style="font-size:0.78rem;color:var(--mu);margin-bottom:12px">📍 10 rue de Châteaudun, Chartres</div><div id="section-planning-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionPlanning();}
   else if(sec==='equipe'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">👨‍🏫 Équipe Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div id="section-equipe-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionEquipe();}
