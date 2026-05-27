@@ -611,7 +611,6 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
         <button class="cst" onclick="showCoachSection('notes',this)">📝 Notes</button>
         <button class="cst" onclick="showCoachSection('msg',this)">💬 Messages</button>
         <button class="cst" onclick="showCoachSection('train',this)">🏋️ Entraînement</button>
-        <button class="cst" onclick="showCoachSection('prepaphys',this)">💪 Prépa Physique</button>
         <button class="cst" onclick="showCoachSection('attack',this)">⚔️ Attaque</button>
       </div>
       <div class="coach-section active" id="cs-perf">
@@ -634,11 +633,14 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
         <div id="coach-notes-profs" style="min-height:60px"></div>
       </div>
       <div class="coach-section" id="cs-train"><div id="coach-train-view"></div></div>
-      <div class="coach-section" id="cs-prepaphys">
-        <div style="font-size:0.72rem;color:var(--mu);margin-bottom:12px">Créez des séances de préparation physique visibles par tous les judokas.</div>
-        <div id="coach-prep-phys-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>
-      </div>
       <div class="coach-section" id="cs-attack"><div id="coach-attack-view"></div></div>
+    </div>
+
+    <!-- PRÉPA PHYSIQUE : section indépendante du dashboard, sans judoka requis -->
+    <div style="margin-top:18px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;text-transform:uppercase;color:var(--navy);margin-bottom:4px">💪 Bibliothèque Préparation Physique</div>
+      <div style="font-size:0.72rem;color:var(--mu);margin-bottom:10px">Séances visibles par tous les judokas dans leur espace entraînement.</div>
+      <div id="coach-prep-phys-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>
     </div>
   </div>
 
@@ -801,6 +803,8 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
 <div id="partenaires-banner" style="display:none"></div>
 
 <div class="toast" id="toast"></div>
+
+<div class="mo" id="m-note-prof">
   <div class="modal">
     <h3 id="mnp-title">📝 Note sur le judoka</h3>
     <div class="fg"><label>Note</label><textarea id="mnp-texte" placeholder="Observations, points techniques, comportement..." style="min-height:100px"></textarea></div>
@@ -1095,7 +1099,7 @@ function showMainPage(p,btn){
   const pg=document.getElementById(pgId);
   if(pg)pg.classList.add('active');
   if(btn)btn.classList.add('active');
-  if(p==='coach'){updCoachSelect();loadCV();}
+  if(p==='coach'){updCoachSelect();loadCV();loadPrepPhysCoach();}
   if(p==='club')renderClubPage();
   if(p==='prof')renderProfPage();
   if(p==='section')renderSectionPage();
