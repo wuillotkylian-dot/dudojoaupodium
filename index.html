@@ -2467,7 +2467,7 @@ function showSectionSection(sec){
       <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:14px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="showSectionSection('calendrier')"><div style="font-size:1.6rem">📅</div><div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.95rem;text-transform:uppercase;color:var(--navy)">Calendrier</div><div style="font-size:0.68rem;color:var(--mu)">Compétitions & stages</div></div></div>
     </div>`;
     loadSectionActualites(true);
-    sectionWeekOffset=0;renderSectionWeek();
+    sectionWeekOffset=0;sectionWeekReadOnly=true;renderSectionWeek(true);
   }
   else if(sec==='planning'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📅 Planning Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div style="font-size:0.78rem;color:var(--mu);margin-bottom:12px">📍 10 rue de Châteaudun, Chartres</div><div id="section-planning-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionPlanning();}
   else if(sec==='equipe'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">👨‍🏫 Équipe Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div id="section-equipe-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionEquipe();}
@@ -3143,7 +3143,7 @@ function getMondayOfWeek(offset){
   const mon=new Date(now);mon.setDate(diff+offset*7);mon.setHours(0,0,0,0);return mon;
 }
 
-async function renderSectionWeek(){
+async function renderSectionWeek(readOnly=false){
   const el=document.getElementById('section-week-planning');
   const label=document.getElementById('section-week-label');
   if(!el)return;
@@ -3163,7 +3163,7 @@ async function renderSectionWeek(){
   // Charger les événements section qui tombent dans la semaine
   const{data:evts}=await sb.from('competitions_club').select('*').eq('source','section').lte('date_debut',sundayKey).gte('date_fin',weekKey);
   const TYPE_EMOJI={competition:'🏆',stage:'🏕️',evenement:'🎉'};
-  const canEdit=CP&&(CP.is_prof_section||CP.is_bureau);
+  const canEdit=!readOnly&&CP&&(CP.is_prof_section||CP.is_bureau);
   const jours=[1,2,3,4,5,6,0];
   let html=`<div style="display:flex;gap:6px;min-width:${jours.length*100}px;padding-bottom:4px">`;
   jours.forEach(j=>{
@@ -3209,7 +3209,8 @@ async function renderSectionWeek(){
   el.innerHTML=html;
 }
 
-function changeWeekSection(dir){sectionWeekOffset+=dir;sectionCours=null;renderSectionWeek();}
+let sectionWeekReadOnly=false;
+function changeWeekSection(dir){sectionWeekOffset+=dir;sectionCours=null;renderSectionWeek(sectionWeekReadOnly);}
 
 function editSectionNote(jour,weekKey,noteId,currentNote){
   const existing=document.getElementById('m-section-note');if(existing)existing.remove();
