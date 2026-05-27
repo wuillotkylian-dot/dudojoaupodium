@@ -605,7 +605,7 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
     </div>
     <div id="ce" class="empty"><div class="ei">📊</div><p>Sélectionne un judoka.</p></div>
     <div id="cc" style="display:none">
-        <div id="coach-notes-profs" style="background:rgba(64,65,104,0.04);border:1.5px solid rgba(64,65,104,0.2);border-radius:14px;padding:14px;margin-bottom:16px"></div>
+        <div id="coach-notes-profs" style="display:none;background:rgba(64,65,104,0.04);border:1.5px solid rgba(64,65,104,0.2);border-radius:14px;padding:14px;margin-bottom:16px"></div>
       <div class="coach-sub-tabs">
         <button class="cst active" onclick="showCoachSection('perf',this)">📊 Performances</button>
         <button class="cst" onclick="showCoachSection('msg',this)">💬 Messages</button>
@@ -809,12 +809,20 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
 <div class="mo" id="m-partenaire">
   <div class="modal">
     <h3 id="mpart-title">🤝 Partenaire</h3>
-    <div class="fg"><label>Logo (URL image)</label><input type="url" id="mpart-logo" placeholder="https://..."></div>
+    <div class="fg">
+      <label>Logo</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+        <div id="mpart-logo-preview" style="width:60px;height:60px;border-radius:8px;border:1.5px solid var(--bd);background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:1.4rem;overflow:hidden;flex-shrink:0">🤝</div>
+        <button type="button" class="bS" onclick="document.getElementById('mpart-logo-input').click()">📷 Choisir un logo</button>
+        <input type="file" id="mpart-logo-input" accept="image/*" style="display:none" onchange="previewPartLogo(this)">
+      </div>
+    </div>
     <div class="fg"><label>Nom</label><input type="text" id="mpart-nom" placeholder="Nom de l'entreprise"></div>
     <div class="fg"><label>Email</label><input type="email" id="mpart-email" placeholder="contact@entreprise.fr"></div>
     <div class="fg"><label>Téléphone</label><input type="tel" id="mpart-tel" placeholder="06 ..."></div>
     <div class="fg"><label>Description</label><textarea id="mpart-bio" placeholder="Présentation, offre pour les licenciés..." style="min-height:80px"></textarea></div>
     <input type="hidden" id="mpart-id">
+    <input type="hidden" id="mpart-logo-url">
     <div style="display:flex;gap:7px"><button class="bP" style="flex:1" onclick="savePartenaire()">💾 Enregistrer</button><button class="bS" onclick="cm('m-partenaire')">Annuler</button></div>
   </div>
 </div>
@@ -1384,6 +1392,7 @@ async function saveDS(){
   if(daySlots.length)sessions[dKey.dk]=[...daySlots];else delete sessions[dKey.dk];
   await upsertTraining({...t,sessions});
   cm('m-day');toast('Journée enregistrée !');loadTrainingSection();
+  if(typeof renderPerfWeek==='function')renderPerfWeek();
 }
 
 // PLANNING TYPE
@@ -1412,6 +1421,7 @@ async function renderPerfWeek(){
   // Charger planning type du judoka
   const t=await getTraining();
   const planningType=t.planning_type||{};
+  const sessions=t.sessions||{};
   // Charger événements club de la semaine
   const{data:evts}=await sb.from('competitions_club').select('*').eq('source','club').lte('date_debut',sundayKey).gte('date_fin',weekKey);
   const TYPE_EMOJI={competition:'🏆',stage:'🏕️',evenement:'🎉'};
@@ -1422,9 +1432,10 @@ async function renderPerfWeek(){
     const dayDate=new Date(monday);dayDate.setDate(monday.getDate()+offset);
     const isToday=dayDate.toDateString()===new Date().toDateString();
     const dayLabel=dayDate.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
-    // Créneaux du planning type pour ce jour (index 0=lun...6=dim)
+    // Créneaux : séance ponctuelle si existe, sinon planning type
     const planIdx=j===0?6:j-1;
-    const slots=((planningType[planIdx]||{}).slots||[]).sort((a,b)=>a.start>b.start?1:-1);
+    const dateKey=dayDate.toISOString().split('T')[0];
+    const slots=(sessions[dateKey]||planningType[planIdx]?.slots||[]).slice().sort((a,b)=>a.start>b.start?1:-1);
     // Événements club qui couvrent ce jour
     const evtsDuJour=(evts||[]).filter(e=>{
       if(!e.date_debut)return false;
@@ -1532,18 +1543,18 @@ async function saveActu(){
   cm('m-actu');toast('Publié !');
   if(context==='section')loadSectionActualites();else loadClubActualites();
 }
-async function loadClubActualites(){
+async function loadClubActualites(readOnly=false){
   const el=document.getElementById('club-actu-view');if(!el)return;
   const{data}=await sb.from('annonces').select('*').order('created_at',{ascending:false});
-  renderActualites(el,data||[],'club');
+  renderActualites(el,data||[],'club',readOnly);
 }
-async function loadSectionActualites(){
+async function loadSectionActualites(readOnly=false){
   const el=document.getElementById('section-actu-view');if(!el)return;
   const{data}=await sb.from('annonces_section').select('*').order('created_at',{ascending:false});
-  renderActualites(el,data||[],'section');
+  renderActualites(el,data||[],'section',readOnly);
 }
-function renderActualites(el,items,context){
-  const canManage=context==='section'?(CP.is_prof_section||CP.is_bureau):(CP.is_prof||CP.is_coach||CP.is_bureau);
+function renderActualites(el,items,context,readOnly=false){
+  const canManage=!readOnly&&(context==='section'?(CP.is_prof_section||CP.is_bureau):(CP.is_prof||CP.is_coach||CP.is_bureau));
   const actu=items.filter(a=>a.type_actu!=='annonce');
   const ann=items.filter(a=>a.type_actu==='annonce');
   const resultats=actu.filter(a=>a.type_actu==='resultat');
@@ -1612,13 +1623,27 @@ function renderPartenaires(el,items,canEdit){
   </div>`).join('');
   el.innerHTML=html;
 }
+function previewPartLogo(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const prev=document.getElementById('mpart-logo-preview');
+    prev.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:contain">`;
+    prev._file=file;
+  };
+  reader.readAsDataURL(file);
+}
 function openPartenaire(id,nom,logo,email,tel,bio){
   document.getElementById('mpart-id').value=id||'';
   document.getElementById('mpart-nom').value=nom||'';
-  document.getElementById('mpart-logo').value=logo||'';
+  document.getElementById('mpart-logo-url').value=logo||'';
   document.getElementById('mpart-email').value=email||'';
   document.getElementById('mpart-tel').value=tel||'';
   document.getElementById('mpart-bio').value=bio||'';
+  const prev=document.getElementById('mpart-logo-preview');
+  prev._file=null;
+  prev.innerHTML=logo?`<img src="${logo}" style="width:100%;height:100%;object-fit:contain">`:'🤝';
+  document.getElementById('mpart-logo-input').value='';
   document.getElementById('mpart-title').textContent=id?'✏️ Modifier partenaire':'🤝 Nouveau partenaire';
   document.getElementById('m-partenaire').classList.add('open');
 }
@@ -1626,7 +1651,13 @@ async function savePartenaire(){
   const id=document.getElementById('mpart-id').value;
   const nom=document.getElementById('mpart-nom').value.trim();
   if(!nom){toast('Donne un nom !',1);return;}
-  const data={nom,logo:document.getElementById('mpart-logo').value.trim(),email:document.getElementById('mpart-email').value.trim(),tel:document.getElementById('mpart-tel').value.trim(),bio:document.getElementById('mpart-bio').value.trim()};
+  const prev=document.getElementById('mpart-logo-preview');
+  let logo=document.getElementById('mpart-logo-url').value||'';
+  if(prev._file){
+    const url=await uploadPhoto(prev._file,'partenaire_'+(id||Date.now()));
+    if(url)logo=url;
+  }
+  const data={nom,logo,email:document.getElementById('mpart-email').value.trim(),tel:document.getElementById('mpart-tel').value.trim(),bio:document.getElementById('mpart-bio').value.trim()};
   if(id){await sb.from('partenaires').update(data).eq('id',id);}
   else{await sb.from('partenaires').insert({id:crypto.randomUUID(),...data,created_at:new Date().toISOString()});}
   cm('m-partenaire');toast('Partenaire enregistré !');
@@ -1718,9 +1749,10 @@ function openDayPerfModal(dateStr){
   getTraining().then(t=>{
     const sessions=t.sessions||{};
     const planningType=t.planning_type||{};
+    // getDay() : 0=dim,1=lun...6=sam → planIdx : 0=lun...6=dim
     const dow=d.getDay();
     const planIdx=dow===0?6:dow-1;
-    const existing=sessions[dateStr]||(planningType[planIdx]?.slots?[...planningType[planIdx].slots]:[]);
+    const existing=sessions[dateStr]||(planningType[planIdx]?.slots?JSON.parse(JSON.stringify(planningType[planIdx].slots)):[]);
     daySlots=JSON.parse(JSON.stringify(existing));
     dKey={dk:dateStr,sessions,planningType};
     document.getElementById('mdayt').textContent=label;
@@ -1777,12 +1809,13 @@ async function loadCV(){
   const id=document.getElementById('cjs').value;
   document.getElementById('ce').style.display=id?'none':'';
   document.getElementById('cc').style.display=id?'':'none';
-  if(!id)return;
+  if(!id){const npEl=document.getElementById('coach-notes-profs');if(npEl)npEl.style.display='none';return;}
   showCoachSection('perf',document.querySelector('.cst'));
   // NOTES PROFS EN PREMIER PLAN
   const scope=CP.is_prof_section?'section':'club';
   const{data:notesProfs}=await sb.from('notes_profs').select('*').eq('judoka_id',id).eq('scope',scope).order('created_at',{ascending:false});
   const npEl=document.getElementById('coach-notes-profs');
+  if(npEl) npEl.style.display='block';
   if(npEl){
     const canAddNote=CP.is_prof||CP.is_coach||CP.is_prof_section||CP.is_bureau;
     npEl.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
@@ -1983,8 +2016,7 @@ function showClubSection(sec){
         <div id="club-partenaires-view"><div style="text-align:center;padding:12px;color:var(--mu)">Chargement...</div></div>
       </div>
     </div>${CP.is_parent?'<div id="enfants-section" style="margin-top:16px"></div>':''}`;
-    loadClubActualites();
-    loadPartenaires('club-partenaires-view');
+    loadClubActualites(true);
     if(CP.is_parent)loadEnfantsSection();
   }
   else if(sec==='planning'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.92rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy)">📅 Planning des cours</div><button class="bS" onclick="showClubSection('main')">← Retour</button></div><div class="dojo-filter"><button class="dojo-btn active" onclick="filterDojo('tous',this)">Tous</button><button class="dojo-btn" onclick="filterDojo('Chartres - La Madeleine',this)">La Madeleine</button><button class="dojo-btn" onclick="filterDojo('Chartres - Dojo Section',this)">Section</button><button class="dojo-btn" onclick="filterDojo('Mainvilliers',this)">Mainvilliers</button><button class="dojo-btn" onclick="filterDojo('Lucé',this)">Lucé</button><button class="dojo-btn" onclick="filterDojo('Fontaine',this)">Fontaine</button></div><div id="planning-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadClubPlanning('tous');}
@@ -2417,8 +2449,7 @@ function showSectionSection(sec){
       <div style="background:var(--sf);border:2px solid rgba(42,157,92,0.25);border-radius:14px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="showSectionSection('equipe')"><div style="font-size:1.6rem">👨‍🏫</div><div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.95rem;text-transform:uppercase;color:var(--navy)">Équipe</div><div style="font-size:0.68rem;color:var(--mu)">Les intervenants</div></div></div>
       <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:14px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="showSectionSection('calendrier')"><div style="font-size:1.6rem">📅</div><div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.95rem;text-transform:uppercase;color:var(--navy)">Calendrier</div><div style="font-size:0.68rem;color:var(--mu)">Compétitions & stages</div></div></div>
     </div>`;
-    loadSectionActualites();
-    sectionWeekOffset=0;renderSectionWeek();
+    loadSectionActualites(true);
   }
   else if(sec==='planning'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📅 Planning Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div style="font-size:0.78rem;color:var(--mu);margin-bottom:12px">📍 10 rue de Châteaudun, Chartres</div><div id="section-planning-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionPlanning();}
   else if(sec==='equipe'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">👨‍🏫 Équipe Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div id="section-equipe-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionEquipe();}
