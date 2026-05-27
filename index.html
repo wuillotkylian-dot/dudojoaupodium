@@ -896,7 +896,7 @@ let allJudokas=[]; // for coach dropdown
 // UTILS
 // ============================================================
 function getMon(d){const x=new Date(d),dy=x.getDay(),df=x.getDate()-dy+(dy===0?-6:1);return new Date(x.setDate(df));}
-function dstr(d){return d.toISOString().slice(0,10);}
+function dstr(d){const yy=d.getFullYear(),mm=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return `${yy}-${mm}-${dd}`;}
 function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
 function jFN(p){return p?((p.prenom||'')+(p.nom?' '+p.nom:'')).trim()||'Sans nom':'?';}
 function aFN(a){return a?((a.prenom||'')+(a.nom?' '+a.nom:'')).trim()||'Sans nom':'?';}
