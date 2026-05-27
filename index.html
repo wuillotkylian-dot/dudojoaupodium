@@ -3163,7 +3163,7 @@ async function renderSectionWeek(readOnly=false){
   const notesByJour={};(notes||[]).forEach(n=>{if(n.jour_semaine!==undefined)notesByJour[n.jour_semaine]=n;});
   // Charger les annulations de la semaine
   const{data:annuls}=await sb.from('planning_saison').select('*').eq('semaine_debut',weekKey).eq('type','annulation_section');
-  const annulByJour={};(annuls||[]).forEach(a=>{if(a.jour_semaine!==undefined)annulByJour[a.jour_semaine]=a;});
+  const annulByCours={};(annuls||[]).forEach(a=>{if(a.cours_id)annulByCours[a.cours_id]=a;});
   // Charger les événements section qui tombent dans la semaine
   const{data:evts}=await sb.from('competitions_club').select('*').eq('source','section').lte('date_debut',sundayKey).gte('date_fin',weekKey);
   const TYPE_EMOJI={competition:'🏆',stage:'🏕️',evenement:'🎉'};
@@ -3184,24 +3184,28 @@ async function renderSectionWeek(readOnly=false){
       return d>=e.date_debut&&d<=(e.date_fin||e.date_debut);
     });
     const note=notesByJour[j];
-    const annul=annulByJour[j];
-    html+=`<div style="flex:0 0 95px;background:${annul?'rgba(220,38,38,0.04)':'var(--sf)'};border:${annul?'2px solid rgba(220,38,38,0.4)':isToday?'2px solid var(--gold)':'1px solid var(--bd)'};border-radius:10px;overflow:hidden">
-      <div style="background:${annul?'rgb(220,38,38)':isToday?'var(--gold)':'var(--navy)'};color:#fff;padding:5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.68rem;text-align:center;text-transform:capitalize">${dayLabel}</div>
+    // annul calculé par créneau dans la boucle coursDuJour
+    const anyAnnul=coursDuJour.some(c=>annulByCours[c.id]);
+    html+=`<div style="flex:0 0 95px;background:var(--sf);border:${isToday?'2px solid var(--gold)':'1px solid var(--bd)'};border-radius:10px;overflow:hidden">
+      <div style="background:${isToday?'var(--gold)':'var(--navy)'};color:#fff;padding:5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.68rem;text-align:center;text-transform:capitalize">${dayLabel}</div>
       <div style="padding:5px">`;
     if(!coursDuJour.length&&!evtsDuJour.length){
       html+=`<div style="font-size:0.6rem;color:var(--mu);text-align:center;padding:6px 0">—</div>`;
     } else {
       coursDuJour.forEach(c=>{
+        const annul=annulByCours[c.id];
         if(annul){
           html+=`<div style="background:rgba(220,38,38,0.07);border-radius:6px;padding:4px 5px;margin-bottom:3px">
             <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.68rem;color:rgba(220,38,38,0.5);text-decoration:line-through">${c.heure_debut}–${c.heure_fin}</div>
             <div style="font-size:0.6rem;font-weight:600;color:rgba(220,38,38,0.5);line-height:1.2;text-decoration:line-through">${c.nom||'Cours'}</div>
             <div style="display:flex;align-items:center;gap:3px;margin-top:3px"><span style="font-size:0.75rem">❌</span><span style="font-size:0.58rem;font-weight:700;color:rgb(220,38,38)">COURS ANNULÉ</span></div>
+            ${canAnnul?`<button class="bP" style="width:100%;margin-top:3px;font-size:0.58rem;padding:2px 4px;background:var(--gr)" onclick="cancelAnnulSection('${annul.id}')">✅ Rétablir</button>`:''}
           </div>`;
         } else {
           html+=`<div style="background:rgba(155,89,182,0.07);border-radius:6px;padding:4px 5px;margin-bottom:3px">
             <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.68rem;color:var(--pu)">${c.heure_debut}–${c.heure_fin}</div>
             <div style="font-size:0.6rem;font-weight:600;color:var(--tx);line-height:1.2">${c.nom||'Cours'}</div>
+            ${canAnnul?`<button class="bR" style="width:100%;margin-top:3px;font-size:0.58rem;padding:2px 4px" onclick="annulerCoursSection('${c.id}',${j},'${weekKey}')">❌ Annuler</button>`:''}
           </div>`;
         }
       });
@@ -3216,13 +3220,7 @@ async function renderSectionWeek(readOnly=false){
       });
     }
     if(note){html+=`<div style="margin-top:4px;background:rgba(242,186,29,0.1);border-radius:5px;padding:4px;font-size:0.6rem;color:var(--tx);line-height:1.3">📝 ${note.contenu}</div>`;}
-    if(canAnnul){
-      if(annul){
-        html+=`<button class="bP" style="width:100%;margin-top:3px;font-size:0.58rem;padding:2px 4px;background:var(--gr)" onclick="cancelAnnulSection('${annul.id}')">✅ Rétablir</button>`;
-      } else if(coursDuJour.length){
-        html+=`<button class="bR" style="width:100%;margin-top:3px;font-size:0.58rem;padding:2px 4px" onclick="annulerCoursSection(${j},'${weekKey}')">❌ Annuler</button>`;
-      }
-    }
+
     html+='</div></div>';
   });
   html+='</div>';
@@ -3232,8 +3230,8 @@ async function renderSectionWeek(readOnly=false){
 let sectionWeekReadOnly=false;
 function changeWeekSection(dir){sectionWeekOffset+=dir;sectionCours=null;renderSectionWeek(sectionWeekReadOnly);}
 
-async function annulerCoursSection(jour,weekKey){
-  await sb.from('planning_saison').insert({id:crypto.randomUUID(),prof_id:CU.id,semaine_debut:weekKey,semaine_fin:weekKey,contenu:'Cours annulé',type:'annulation_section',jour_semaine:jour,created_at:new Date().toISOString()});
+async function annulerCoursSection(coursId,jour,weekKey){
+  await sb.from('planning_saison').insert({id:crypto.randomUUID(),prof_id:CU.id,cours_id:coursId,semaine_debut:weekKey,semaine_fin:weekKey,contenu:'Cours annulé',type:'annulation_section',jour_semaine:jour,created_at:new Date().toISOString()});
   toast('Cours annulé !');renderSectionWeek(sectionWeekReadOnly);
 }
 async function cancelAnnulSection(id){
