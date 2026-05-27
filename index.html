@@ -2034,6 +2034,7 @@ function showClubSection(sec){
       </div>
     </div>${CP.is_parent?'<div id="enfants-section" style="margin-top:16px"></div>':''}`;
     loadClubActualites(true);
+    loadPartenaires('club-partenaires-view');
     if(CP.is_parent)loadEnfantsSection();
   }
   else if(sec==='planning'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.92rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy)">📅 Planning des cours</div><button class="bS" onclick="showClubSection('main')">← Retour</button></div><div class="dojo-filter"><button class="dojo-btn active" onclick="filterDojo('tous',this)">Tous</button><button class="dojo-btn" onclick="filterDojo('Chartres - La Madeleine',this)">La Madeleine</button><button class="dojo-btn" onclick="filterDojo('Chartres - Dojo Section',this)">Section</button><button class="dojo-btn" onclick="filterDojo('Mainvilliers',this)">Mainvilliers</button><button class="dojo-btn" onclick="filterDojo('Lucé',this)">Lucé</button><button class="dojo-btn" onclick="filterDojo('Fontaine',this)">Fontaine</button></div><div id="planning-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadClubPlanning('tous');}
@@ -2467,7 +2468,7 @@ function showSectionSection(sec){
       <div style="background:var(--sf);border:2px solid rgba(155,89,182,0.25);border-radius:14px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="showSectionSection('calendrier')"><div style="font-size:1.6rem">📅</div><div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:0.95rem;text-transform:uppercase;color:var(--navy)">Calendrier</div><div style="font-size:0.68rem;color:var(--mu)">Compétitions & stages</div></div></div>
     </div>`;
     loadSectionActualites(true);
-    sectionWeekOffset=0;sectionWeekReadOnly=true;renderSectionWeek(true);
+    sectionWeekOffset=0;sectionWeekReadOnly=!(CP&&(CP.is_prof_section||CP.is_bureau));renderSectionWeek(sectionWeekReadOnly);
   }
   else if(sec==='planning'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">📅 Planning Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div style="font-size:0.78rem;color:var(--mu);margin-bottom:12px">📍 10 rue de Châteaudun, Chartres</div><div id="section-planning-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionPlanning();}
   else if(sec==='equipe'){pg.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="ST" style="margin:0">👨‍🏫 Équipe Section</div><button class="bS" onclick="showSectionSection('main')">← Retour</button></div><div id="section-equipe-view"><div style="text-align:center;padding:20px;color:var(--mu)">Chargement...</div></div>`;loadSectionEquipe();}
@@ -3167,6 +3168,7 @@ async function renderSectionWeek(readOnly=false){
   const{data:evts}=await sb.from('competitions_club').select('*').eq('source','section').lte('date_debut',sundayKey).gte('date_fin',weekKey);
   const TYPE_EMOJI={competition:'🏆',stage:'🏕️',evenement:'🎉'};
   const canEdit=!readOnly&&CP&&(CP.is_prof_section||CP.is_bureau);
+  const canAnnul=canEdit; // même droit, mais depuis l'espace section
   const jours=[1,2,3,4,5,6,0];
   let html=`<div style="display:flex;gap:6px;min-width:${jours.length*100}px;padding-bottom:4px">`;
   jours.forEach(j=>{
@@ -3214,8 +3216,7 @@ async function renderSectionWeek(readOnly=false){
       });
     }
     if(note){html+=`<div style="margin-top:4px;background:rgba(242,186,29,0.1);border-radius:5px;padding:4px;font-size:0.6rem;color:var(--tx);line-height:1.3">📝 ${note.contenu}</div>`;}
-    if(canEdit){
-      html+=`<button class="bE" style="width:100%;margin-top:4px;font-size:0.58rem;padding:2px 4px" onclick="editSectionNote(${j},'${weekKey}','${note?.id||''}','${(note?.contenu||'').replace(/'/g,'&#39;')}')">✏️ Note</button>`;
+    if(canAnnul){
       if(annul){
         html+=`<button class="bP" style="width:100%;margin-top:3px;font-size:0.58rem;padding:2px 4px;background:var(--gr)" onclick="cancelAnnulSection('${annul.id}')">✅ Rétablir</button>`;
       } else if(coursDuJour.length){
