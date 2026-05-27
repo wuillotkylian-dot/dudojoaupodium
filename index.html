@@ -605,9 +605,10 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
     </div>
     <div id="ce" class="empty"><div class="ei">📊</div><p>Sélectionne un judoka.</p></div>
     <div id="cc" style="display:none">
-        <div id="coach-notes-profs" style="display:none;background:rgba(64,65,104,0.04);border:1.5px solid rgba(64,65,104,0.2);border-radius:14px;padding:14px;margin-bottom:16px"></div>
+
       <div class="coach-sub-tabs">
         <button class="cst active" onclick="showCoachSection('perf',this)">📊 Performances</button>
+        <button class="cst" onclick="showCoachSection('notes',this)">📝 Notes</button>
         <button class="cst" onclick="showCoachSection('msg',this)">💬 Messages</button>
         <button class="cst" onclick="showCoachSection('train',this)">🏋️ Entraînement</button>
         <button class="cst" onclick="showCoachSection('prepaphys',this)">💪 Prépa Physique</button>
@@ -628,6 +629,9 @@ textarea{resize:vertical;min-height:65px;}select option{background:#fff;}
           <button class="bP" onclick="saveCoachMsg()">📨 Envoyer</button>
           <div id="cmsglist" style="margin-top:12px"></div>
         </div>
+      </div>
+      <div class="coach-section" id="cs-notes">
+        <div id="coach-notes-profs" style="min-height:60px"></div>
       </div>
       <div class="coach-section" id="cs-train"><div id="coach-train-view"></div></div>
       <div class="coach-section" id="cs-prepaphys">
@@ -1432,10 +1436,14 @@ async function renderPerfWeek(){
     const dayDate=new Date(monday);dayDate.setDate(monday.getDate()+offset);
     const isToday=dayDate.toDateString()===new Date().toDateString();
     const dayLabel=dayDate.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
-    // Créneaux : séance ponctuelle si existe, sinon planning type
+    // Créneaux : planning type + séances ponctuelles EN PLUS
     const planIdx=j===0?6:j-1;
-    const dateKey=dayDate.toISOString().split('T')[0];
-    const slots=(sessions[dateKey]||planningType[planIdx]?.slots||[]).slice().sort((a,b)=>a.start>b.start?1:-1);
+    // Utilise la date locale pour éviter le décalage UTC
+    const yy=dayDate.getFullYear(),mm=String(dayDate.getMonth()+1).padStart(2,'0'),dd=String(dayDate.getDate()).padStart(2,'0');
+    const dateKey=`${yy}-${mm}-${dd}`;
+    const typeSlots=(planningType[planIdx]?.slots||[]).slice();
+    const daySession=sessions[dateKey]||[];
+    const slots=[...typeSlots,...daySession].sort((a,b)=>a.start>b.start?1:-1);
     // Événements club qui couvrent ce jour
     const evtsDuJour=(evts||[]).filter(e=>{
       if(!e.date_debut)return false;
@@ -1477,6 +1485,37 @@ async function renderPerfWeek(){
 // ============================================================
 // NOTES PROFS
 // ============================================================
+// ============================================================
+// NOTES PROFS
+// ============================================================
+async function loadNotesProf(){
+  const npEl=document.getElementById('coach-notes-profs');if(!npEl)return;
+  const id=document.getElementById('cjs')?.value;
+  if(!id){npEl.innerHTML=`<div style="text-align:center;padding:20px;color:var(--mu)">Sélectionne un judoka pour voir ses notes.</div>`;return;}
+  const scope=CP.is_prof_section?'section':'club';
+  const{data:notesProfs}=await sb.from('notes_profs').select('*').eq('judoka_id',id).eq('scope',scope).order('created_at',{ascending:false});
+  const canAddNote=CP.is_prof||CP.is_coach||CP.is_prof_section||CP.is_bureau;
+  npEl.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;text-transform:uppercase;color:var(--navy)">📝 Notes sur ce judoka</div>
+    ${canAddNote?`<button class="bP" style="font-size:0.72rem;padding:5px 12px" onclick="openNoteProf('${id}')">+ Ajouter</button>`:''}
+  </div>
+  ${(notesProfs||[]).length?notesProfs.map(n=>{
+    const isAuthor=n.prof_id===CU.id;
+    const d=new Date(n.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
+    return `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:8px;border-left:4px solid var(--navy)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="flex:1">
+          <div style="font-size:0.65rem;font-weight:700;color:var(--navy);text-transform:uppercase;margin-bottom:3px">${n.auteur||'Coach'} <span style="color:var(--mu);font-weight:400">· ${d}</span></div>
+          <div style="font-size:0.85rem;color:var(--tx);line-height:1.5">${n.texte}</div>
+        </div>
+        ${isAuthor?`<div style="display:flex;gap:4px;margin-left:8px;flex-shrink:0">
+          <button class="bE" style="padding:3px 7px" onclick="editNoteProf('${n.id}','${id}')">✏️</button>
+          <button class="bR" style="padding:3px 7px" onclick="deleteNoteProf('${n.id}')">🗑️</button>
+        </div>`:''}
+      </div>
+    </div>`;
+  }).join(''):`<div style="color:var(--mu);font-size:0.8rem;text-align:center;padding:20px">Aucune note pour ce judoka.</div>`}`;
+}
 function openNoteProf(judokaId,noteId,texte){
   document.getElementById('mnp-judoka-id').value=judokaId;
   document.getElementById('mnp-note-id').value=noteId||'';
@@ -1495,7 +1534,7 @@ async function saveNoteProf(){
   } else {
     await sb.from('notes_profs').insert({id:crypto.randomUUID(),judoka_id:judokaId,prof_id:CU.id,auteur:jFN(CP),texte,scope,created_at:new Date().toISOString()});
   }
-  cm('m-note-prof');toast('Note enregistrée !');loadCV();
+  cm('m-note-prof');toast('Note enregistrée !');loadNotesProf();
 }
 function editNoteProf(noteId,judokaId){
   sb.from('notes_profs').select('texte').eq('id',noteId).maybeSingle().then(({data})=>{
@@ -1505,7 +1544,7 @@ function editNoteProf(noteId,judokaId){
 function deleteNoteProf(noteId){
   askConfirm('Supprimer cette note ?','🗑️ Supprimer',async()=>{
     await sb.from('notes_profs').delete().eq('id',noteId);
-    toast('Note supprimée.');loadCV();
+    toast('Note supprimée.');loadNotesProf();
   });
 }
 
@@ -1752,8 +1791,9 @@ function openDayPerfModal(dateStr){
     // getDay() : 0=dim,1=lun...6=sam → planIdx : 0=lun...6=dim
     const dow=d.getDay();
     const planIdx=dow===0?6:dow-1;
-    const existing=sessions[dateStr]||(planningType[planIdx]?.slots?JSON.parse(JSON.stringify(planningType[planIdx].slots)):[]);
-    daySlots=JSON.parse(JSON.stringify(existing));
+    // Séances ponctuelles existantes pour ce jour seulement (pas le planning type)
+    const existing=sessions[dateStr]?JSON.parse(JSON.stringify(sessions[dateStr])):[];
+    daySlots=existing;
     dKey={dk:dateStr,sessions,planningType};
     document.getElementById('mdayt').textContent=label;
     slotType='judo';editingSlotId=null;resetSlotForm();renderDaySlots();
@@ -1809,36 +1849,8 @@ async function loadCV(){
   const id=document.getElementById('cjs').value;
   document.getElementById('ce').style.display=id?'none':'';
   document.getElementById('cc').style.display=id?'':'none';
-  if(!id){const npEl=document.getElementById('coach-notes-profs');if(npEl)npEl.style.display='none';return;}
+  if(!id){return;}
   showCoachSection('perf',document.querySelector('.cst'));
-  // NOTES PROFS EN PREMIER PLAN
-  const scope=CP.is_prof_section?'section':'club';
-  const{data:notesProfs}=await sb.from('notes_profs').select('*').eq('judoka_id',id).eq('scope',scope).order('created_at',{ascending:false});
-  const npEl=document.getElementById('coach-notes-profs');
-  if(npEl) npEl.style.display='block';
-  if(npEl){
-    const canAddNote=CP.is_prof||CP.is_coach||CP.is_prof_section||CP.is_bureau;
-    npEl.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;text-transform:uppercase;color:var(--navy)">📝 Notes profs</div>
-      ${canAddNote?`<button class="bP" style="font-size:0.72rem;padding:5px 12px" onclick="openNoteProf('${id}')">+ Ajouter</button>`:''}
-    </div>
-    ${(notesProfs||[]).length?notesProfs.map(n=>{
-      const isAuthor=n.prof_id===CU.id;
-      const d=new Date(n.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
-      return `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:8px;border-left:4px solid var(--navy)">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div style="flex:1">
-            <div style="font-size:0.65rem;font-weight:700;color:var(--navy);text-transform:uppercase;margin-bottom:3px">${n.auteur||'Prof'} <span style="color:var(--mu);font-weight:400">· ${d}</span></div>
-            <div style="font-size:0.85rem;color:var(--tx);line-height:1.5">${n.texte}</div>
-          </div>
-          ${isAuthor?`<div style="display:flex;gap:4px;margin-left:8px;flex-shrink:0">
-            <button class="bE" style="padding:3px 7px" onclick="editNoteProf('${n.id}','${id}')">✏️</button>
-            <button class="bR" style="padding:3px 7px" onclick="deleteNoteProf('${n.id}')">🗑️</button>
-          </div>`:''}
-        </div>
-      </div>`;
-    }).join(''):`<div style="color:var(--mu);font-size:0.8rem;text-align:center;padding:14px">Aucune note pour ce judoka.</div>`}`;
-  }
   const{data:comps}=await sb.from('competitions').select('*').eq('user_id',id).order('date',{ascending:false});
   let tw=0,tl=0;const palma={or:0,argent:0,bronze:0,'5e':0,'7e':0,poules:0,nc:0};
   const tW={},tL={};let wD=0,wS=0,lD=0,lS=0;
@@ -1900,6 +1912,7 @@ function showCoachSection(id,btn){
   if(id==='train')renderCoachTrainView();
   if(id==='attack')renderCoachAttackView();
   if(id==='prepaphys')loadPrepPhysCoach();
+  if(id==='notes')loadNotesProf();
 }
 
 async function renderCoachTrainView(){
